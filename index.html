@@ -1,0 +1,3224 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plataforma EduTech Multi-Concurso - V2.1</title>
+  
+  <!-- Fontes Premium do Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            darkbg: '#1a202c',
+            darkcard: '#2d3748',
+            brandgreen: '#2ecc71',
+            brandpurple: '#9b59b6',
+            brandorange: '#e67e22',
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Chart.js para Gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- PDF.js para Extração Local de Texto de PDFs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  
+  <!-- Biblioteca Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1a202c;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #4a5568;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #718096;
+    }
+    
+    /* Lined Paper style for Essay textarea */
+    .lined-paper {
+      background: repeating-linear-gradient(#2d3748, #2d3748 29px, #4a5568 30px);
+      line-height: 30px;
+      font-size: 16px;
+      padding-top: 5px;
+      font-family: 'Courier New', Courier, monospace;
+      color: #e2e8f0;
+      resize: none;
+    }
+
+    /* Pulse animation */
+    .pulse-glow-green {
+      box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4);
+      animation: pulse-green 2s infinite;
+    }
+    @keyframes pulse-green {
+      0% {
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+      }
+    }
+  </style>
+</head>
+<body class="bg-darkbg text-gray-100 font-sans min-h-screen flex flex-col">
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- HEADER / TOP NAV -->
+  <header class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex flex-wrap items-center justify-between shadow-lg sticky top-0 z-30">
+    <div class="flex items-center gap-3">
+      <div class="bg-gradient-to-tr from-brandpurple to-brandgreen p-2.5 rounded-xl shadow-md">
+        <span class="text-2xl">🎯</span>
+      </div>
+      <div>
+        <h1 class="font-display font-bold text-xl tracking-tight text-white flex items-center gap-2">
+          EduTech Concursos <span class="bg-purple-900 text-purple-200 text-xs px-2 py-0.5 rounded-full font-sans font-semibold border border-purple-700">V2.1</span>
+        </h1>
+        <p class="text-xs text-gray-400">Plataforma Dinâmica de Gamificação & IA</p>
+      </div>
+    </div>
+
+    <!-- User Header Panel & DB connection indicators -->
+    <div class="flex items-center gap-4 mt-2 sm:mt-0">
+
+      <!-- Player Score Widget -->
+      <div class="flex items-center gap-3 bg-gray-900 border border-gray-700 rounded-xl p-1.5 pr-4 pl-3 shadow-inner">
+        <img id="headerAvatar" class="w-8 h-8 rounded-lg bg-gray-700" src="https://api.dicebear.com/7.x/bottts/svg?seed=helton" alt="Avatar">
+        <div>
+          <div class="text-xs text-gray-400 font-semibold" id="headerPlayerName">Helton Leite</div>
+          <div class="text-sm font-black text-brandgreen flex items-center gap-1">
+            <span>🏆</span> <span id="headerPlayerScore">0</span> <span class="text-xs font-normal text-gray-500">pts</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-grow flex flex-col md:flex-row">
+    
+    <!-- LEFT SIDEBAR: Active Contests & Wizard Trigger -->
+    <aside class="w-full md:w-80 bg-gray-900 border-r border-gray-800 p-6 flex flex-col shrink-0 gap-6">
+      
+      <!-- Contests Section -->
+      <div class="flex-grow flex flex-col gap-4">
+        <div class="flex items-center justify-between">
+          <h3 class="font-display font-bold text-gray-400 text-xs uppercase tracking-wider">Seus Editais</h3>
+          <button onclick="openWizard()" class="bg-brandgreen hover:bg-green-600 text-darkbg font-bold text-xs py-1 px-2.5 rounded-lg flex items-center gap-1 transition duration-150 shadow-md">
+            <span>+</span> Novo
+          </button>
+        </div>
+
+        <div id="contestListContainer" class="flex flex-col gap-2 overflow-y-auto max-h-[250px] md:max-h-[none]">
+          <!-- Contests populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Quick Tips Card -->
+      <div class="bg-gradient-to-r from-gray-800 to-gray-700/50 p-4 rounded-xl border border-gray-700 shadow-sm text-xs text-gray-300">
+        <h4 class="font-bold text-white mb-1.5 flex items-center gap-1.5 text-sm">
+          <span>🧠</span> Inteligência de Estudo
+        </h4>
+        <p class="leading-relaxed">
+          Os tópicos cadastrados com maior <span class="text-brandorange font-semibold">recorrência de banca</span> terão maior prioridade no Tutor IA durante a geração de questões e temas de redação.
+        </p>
+      </div>
+    </aside>
+
+    <!-- RIGHT PANEL: SCREEN SWITCHER -->
+    <div class="flex-grow p-6 md:p-8 flex flex-col gap-6 overflow-x-hidden">
+      
+      <!-- A. SCREEN: WELCOME / INITIAL CONTEXT (WHEN NO CONTESTS EXIST) -->
+      <section id="screenWelcome" class="hidden max-w-2xl mx-auto my-auto text-center flex flex-col items-center gap-6 py-12 px-6 bg-gray-800/50 rounded-2xl border border-gray-700/60 shadow-xl">
+        <span class="text-6xl animate-bounce">📚</span>
+        <h2 class="font-display font-extrabold text-3xl text-white">Nenhum Concurso Cadastrado</h2>
+        <p class="text-gray-300 max-w-md leading-relaxed">
+          Comece agora mesmo a se preparar! Cadastre seu edital no assistente para treinar com inteligência artificial parametrizada e análise de banca.
+        </p>
+        <button onclick="openWizard()" class="bg-gradient-to-r from-brandgreen to-green-600 hover:from-green-600 hover:to-green-700 text-darkbg font-extrabold text-lg py-3 px-8 rounded-xl shadow-lg transition duration-200 transform hover:scale-105 flex items-center gap-2">
+          <span>🚀</span> Iniciar Assistente de Configuração
+        </button>
+      </section>
+
+      <!-- B. SCREEN: DASHBOARD PRINCIPAL -->
+      <section id="screenDashboard" class="hidden flex flex-col gap-6">
+        
+        <!-- Header Info -->
+        <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-800/40 p-6 rounded-2xl border border-gray-700/50">
+          <div>
+            <span class="text-xs bg-brandpurple/30 text-purple-300 font-bold px-2.5 py-1 rounded-full border border-brandpurple/50 uppercase tracking-wide" id="dashContestBoard">Banca</span>
+            <h2 class="font-display font-black text-2xl md:text-3xl text-white mt-2" id="dashContestName">Concurso TJPE</h2>
+            <p class="text-sm text-gray-400 mt-1">Estilo de Prova: <span id="dashContestStyle" class="font-semibold text-gray-200">Múltipla Escolha</span></p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button id="simuladoRecuperacaoBtn" onclick="runRecoverySimulado()" class="pulse-glow-green bg-gradient-to-r from-brandgreen to-green-600 hover:from-green-600 hover:to-green-700 text-darkbg font-extrabold py-3 px-5 rounded-xl transition duration-200 shadow-lg flex items-center gap-2 text-sm">
+              <span>⚡</span> Simulado de Recuperação
+            </button>
+            <button onclick="goToStudyHub()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-5 rounded-xl border border-gray-600 transition duration-200 text-sm">
+              Estação de Trabalho 📂
+            </button>
+          </div>
+        </div>
+
+        <!-- Charts Dashboard Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          <!-- Box 1: Questões Stats -->
+          <div class="bg-gray-800/60 p-6 rounded-2xl border border-gray-700/50 flex flex-col gap-4 shadow-md">
+            <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
+              <span>📊</span> Desempenho Geral de Questões
+            </h3>
+            <div class="flex-grow flex items-center justify-center min-h-[220px] max-h-[260px] relative">
+              <canvas id="questionsStatsChart"></canvas>
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-center border-t border-gray-700/60 pt-4">
+              <div class="bg-gray-900/50 p-2 rounded-lg border border-gray-700/30">
+                <span class="text-xs text-gray-400 block font-semibold">Total de Acertos</span>
+                <span class="text-xl font-black text-brandgreen" id="dashTotalCorrect">0</span>
+              </div>
+              <div class="bg-gray-900/50 p-2 rounded-lg border border-gray-700/30">
+                <span class="text-xs text-gray-400 block font-semibold">Total de Erros</span>
+                <span class="text-xl font-black text-red-500" id="dashTotalIncorrect">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Box 2: Redações Score History -->
+          <div class="bg-gray-800/60 p-6 rounded-2xl border border-gray-700/50 flex flex-col gap-4 shadow-md">
+            <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
+              <span>📈</span> Evolução das Notas de Redação
+            </h3>
+            <div class="flex-grow flex items-center justify-center min-h-[220px] max-h-[260px] relative">
+              <canvas id="essayScoresChart"></canvas>
+            </div>
+            <div class="bg-gray-900/50 p-3 rounded-lg border border-gray-700/30 text-xs text-gray-300 leading-relaxed">
+              <span class="font-bold text-white block mb-1">Status da Redação:</span>
+              Fórmulas ativas utilizam parâmetros específicos da banca para dedução de desvios microestruturais. Submeta redações para ver seu gráfico subir.
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Subjects and Topics List / Progress Summary -->
+        <div class="bg-gray-800/60 p-6 rounded-2xl border border-gray-700/50 shadow-md">
+          <div class="flex items-center justify-between mb-4 border-b border-gray-700/60 pb-3">
+            <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
+              <span>📂</span> Matérias e Tópicos Cadastrados
+            </h3>
+            <span class="text-xs text-gray-400" id="dashSubjectsCount">0 Matérias</span>
+          </div>
+
+          <div id="dashMatériasContainer" class="flex flex-col gap-4">
+            <!-- Subjects and topics listing -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- C. SCREEN: HUB DE ESTUDOS (ESTAÇÃO DE TRABALHO) -->
+      <section id="screenStudyHub" class="hidden flex flex-col lg:flex-row gap-6">
+        
+        <!-- Accordion Selector Sidebar (Left inside Main) -->
+        <div class="w-full lg:w-72 bg-gray-800/40 p-4 rounded-2xl border border-gray-700/50 flex flex-col gap-4 shrink-0">
+          <div class="flex items-center justify-between border-b border-gray-700/60 pb-2">
+            <h3 class="font-display font-bold text-sm text-gray-200">Estrutura do Edital</h3>
+            <button onclick="goToDashboard()" class="text-xs text-brandpurple font-bold hover:underline">Voltar 🏠</button>
+          </div>
+          <div id="studyAccordionContainer" class="flex flex-col gap-2 overflow-y-auto max-h-[400px] lg:max-h-[none]">
+            <!-- Dynamic Subject/Topic Tree Accordion -->
+          </div>
+        </div>
+
+        <!-- Topic Active Detail Panel (Right inside Main) -->
+        <div class="flex-grow flex flex-col gap-6">
+          
+          <!-- Welcome details if no topic selected -->
+          <div id="topicWorkspacePlaceholder" class="bg-gray-800/20 py-20 px-6 rounded-2xl border border-dashed border-gray-700/80 text-center flex flex-col items-center gap-4 my-auto">
+            <span class="text-5xl">👈</span>
+            <h3 class="font-display font-bold text-xl text-gray-300">Selecione um Assunto</h3>
+            <p class="text-gray-400 text-sm max-w-xs leading-relaxed">
+              Escolha um assunto na árvore do edital ao lado para acessar a teoria, materiais de apoio e treinar com a Inteligência Artificial.
+            </p>
+          </div>
+
+          <!-- Active Workspace (Visible only when topic is active) -->
+          <div id="topicWorkspaceActive" class="hidden flex flex-col gap-6">
+            
+            <!-- Recurrence stats & Title bar -->
+            <div class="bg-gradient-to-r from-gray-800 to-gray-700/50 p-6 rounded-2xl border border-gray-700/50 flex flex-wrap items-center justify-between gap-4 shadow-md">
+              <div class="flex-grow max-w-full">
+                <span class="text-xs bg-brandorange/30 text-orange-300 font-bold px-2 py-0.5 rounded border border-brandorange/40" id="topicActiveSubject">Nome da Matéria</span>
+                <h2 class="font-display font-black text-xl md:text-2xl text-white mt-1.5" id="topicActiveTitle">Título do Tópico</h2>
+              </div>
+              <div class="bg-gray-900 border border-gray-700/80 rounded-xl px-4 py-2.5 flex items-center gap-3 shrink-0">
+                <div class="text-center border-r border-gray-700 pr-3">
+                  <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Recorrência</span>
+                  <span class="text-lg font-black text-brandorange" id="topicActiveRecPercentage">0.00%</span>
+                </div>
+                <div class="text-xs max-w-[160px] text-gray-300" id="topicActiveNotes">
+                  Sem observações da banca.
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabs: Teoria/Materiais, Tutor Questões, Tutor Redação -->
+            <div class="flex border-b border-gray-700 gap-1.5">
+              <button onclick="switchWorkspaceTab('theory')" id="tabBtn-theory" class="workspace-tab-btn font-display font-semibold text-sm px-4 py-2.5 rounded-t-xl transition duration-150 border-t border-x border-transparent">
+                📚 Teoria & Apoio
+              </button>
+              <button onclick="switchWorkspaceTab('questions')" id="tabBtn-questions" class="workspace-tab-btn font-display font-semibold text-sm px-4 py-2.5 rounded-t-xl transition duration-150 border-t border-x border-transparent">
+                🤖 Tutor: Questões
+              </button>
+              <button onclick="switchWorkspaceTab('essay')" id="tabBtn-essay" class="workspace-tab-btn font-display font-semibold text-sm px-4 py-2.5 rounded-t-xl transition duration-150 border-t border-x border-transparent">
+                ✏️ Tutor: Redação
+              </button>
+            </div>
+
+            <!-- WORKSPACE TAB PANELS -->
+            <div class="bg-gray-800/40 p-6 rounded-2xl border border-gray-700/50 shadow-inner min-h-[400px]">
+              
+              <!-- TAB PANEL 1: THEORY / MATERIALS -->
+              <div id="tabPanel-theory" class="workspace-tab-panel flex flex-col gap-6">
+                <!-- Editable base theory -->
+                <div>
+                  <label class="block text-xs font-bold uppercase text-gray-400 tracking-wider mb-2">Teoria Padrão / Conteúdo de Estudo</label>
+                  <textarea id="theoryContentField" rows="8" placeholder="Digite ou edite o texto principal da teoria..." class="w-full bg-gray-900 border border-gray-700 rounded-xl p-4 text-sm text-gray-200 focus:outline-none focus:border-brandpurple transition duration-150"></textarea>
+                  <button onclick="saveActiveTheory()" class="bg-brandpurple hover:bg-purple-600 text-white font-bold text-xs py-2 px-4 rounded-lg mt-2 transition duration-150 float-right">
+                    Salvar Teoria
+                  </button>
+                </div>
+
+                <!-- Cumulative materials list and Uploader -->
+                <div class="border-t border-gray-700/60 pt-6 flex flex-col gap-4">
+                  <h3 class="font-display font-bold text-white text-base">Material de Contexto Acumulado</h3>
+                  <div id="studyMaterialsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Dynamic material cards -->
+                  </div>
+
+                  <!-- Upload Tabs (PDF, Text, Web) -->
+                  <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-700/50 mt-4 flex flex-col gap-4">
+                    <h4 class="font-bold text-sm text-white flex items-center gap-1.5">
+                      <span>📥</span> Inserir Novo Material de Contexto
+                    </h4>
+                    <div class="flex gap-2 text-xs border-b border-gray-800 pb-2">
+                      <button onclick="switchUploadTab('pdf')" id="uploadTabBtn-pdf" class="upload-tab-btn px-3 py-1.5 rounded-lg font-semibold bg-gray-800 text-white">PDF Uploader</button>
+                      <button onclick="switchUploadTab('text')" id="uploadTabBtn-text" class="upload-tab-btn px-3 py-1.5 rounded-lg font-semibold bg-transparent text-gray-400">Texto Livre</button>
+                      <button onclick="switchUploadTab('url')" id="uploadTabBtn-url" class="upload-tab-btn px-3 py-1.5 rounded-lg font-semibold bg-transparent text-gray-400">Link Web</button>
+                    </div>
+
+                    <!-- PDF Upload Section -->
+                    <div id="uploadPanel-pdf" class="upload-panel flex flex-col gap-3">
+                      <div class="border-2 border-dashed border-gray-700/80 hover:border-brandgreen/80 rounded-xl p-6 text-center cursor-pointer transition duration-150 relative bg-gray-800/30">
+                        <input type="file" id="pdfFileInput" accept="application/pdf" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handlePDFSelection()">
+                        <span class="text-3xl block mb-2">📄</span>
+                        <p class="text-xs text-gray-300 font-bold" id="pdfFileNameDisplay">Clique ou arraste um arquivo PDF para extração automática de texto</p>
+                        <p class="text-[10px] text-gray-500 mt-1">Extração local via PDF.js</p>
+                      </div>
+                      <div id="pdfProgressContainer" class="hidden flex items-center gap-3 bg-gray-800 p-3 rounded-lg border border-gray-700">
+                        <div class="animate-spin h-4 w-4 text-brandgreen rounded-full border-2 border-brandgreen border-t-transparent"></div>
+                        <span class="text-xs text-gray-300" id="pdfStatusMsg">Processando PDF...</span>
+                      </div>
+                    </div>
+
+                    <!-- Text Upload Section -->
+                    <div id="uploadPanel-text" class="upload-panel hidden flex flex-col gap-3">
+                      <input type="text" id="textMaterialName" placeholder="Nome de Exibição do Material (Ex: Resumo Cripto FCC)" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none focus:border-brandgreen">
+                      <textarea id="textMaterialContent" rows="4" placeholder="Cole o texto que servirá de suporte para a geração de questões e redação..." class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-xs text-gray-200 focus:outline-none focus:border-brandgreen"></textarea>
+                      <button onclick="addTextMaterial()" class="bg-brandgreen hover:bg-green-600 text-darkbg font-bold text-xs py-2 px-4 rounded-lg self-end transition duration-150">
+                        Adicionar Material
+                      </button>
+                    </div>
+
+                    <!-- URL Upload Section -->
+                    <div id="uploadPanel-url" class="upload-panel hidden flex flex-col gap-3">
+                      <input type="text" id="urlMaterialName" placeholder="Nome de Exibição do Link" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none focus:border-brandgreen">
+                      <select id="urlMaterialType" class="bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none focus:border-brandgreen">
+                        <option value="web_link">Link Geral (Artigo, Artigo de Lei)</option>
+                        <option value="youtube_link">URL do YouTube (Vídeo Aula)</option>
+                      </select>
+                      <input type="url" id="urlMaterialData" placeholder="https://exemplo.com/conteudo" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none focus:border-brandgreen">
+                      <button onclick="addURLMaterial()" class="bg-brandgreen hover:bg-green-600 text-darkbg font-bold text-xs py-2 px-4 rounded-lg self-end transition duration-150">
+                        Salvar Link
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- TAB PANEL 2: TUTOR QUESTIONS -->
+              <div id="tabPanel-questions" class="workspace-tab-panel hidden flex flex-col gap-6">
+                <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-900/40 p-4 rounded-xl border border-gray-700/50">
+                  <div class="text-xs text-gray-300">
+                    <p class="font-bold text-white">Geração Pautada pela Recorrência:</p>
+                    <p>O robô irá ler todo o material cumulativo do tópico para gerar 5 questões da banca.</p>
+                  </div>
+                  <button id="gerarQuestoesBtn" onclick="generateQuestions()" class="bg-gradient-to-r from-brandpurple to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-extrabold py-2.5 px-6 rounded-xl transition duration-200 shadow-md text-sm">
+                    Gerar 5 Questões
+                  </button>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div id="questionsLoading" class="hidden flex flex-col items-center justify-center py-12 gap-3 text-center">
+                  <div class="animate-spin h-10 w-10 text-brandpurple rounded-full border-4 border-brandpurple border-t-transparent"></div>
+                  <span class="text-sm font-semibold text-gray-300">Inteligência Artificial criando sua prova de fixação...</span>
+                </div>
+
+                <!-- Questions Container -->
+                <div id="questionsContainer" class="flex flex-col gap-6">
+                  <!-- Rendered questions with alternatives -->
+                </div>
+              </div>
+
+              <!-- TAB PANEL 3: TUTOR ESSAY -->
+              <div id="tabPanel-essay" class="workspace-tab-panel hidden flex flex-col gap-6">
+                
+                <!-- Guidelines & Configuration Warning -->
+                <div id="essayConfigWarning" class="hidden bg-yellow-900/30 border border-yellow-800 text-yellow-200 p-4 rounded-xl text-xs flex flex-col gap-1.5">
+                  <span class="font-bold">⚠️ Redação Discursiva Não Configurada</span>
+                  <span>Este concurso não possui configurações de redação salvas. Vá ao painel de cadastro/edição e ative as diretrizes e fórmulas para o robô corretor funcionar.</span>
+                </div>
+
+                <div id="essayActiveWorkspace" class="flex flex-col gap-6">
+                  
+                  <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-900/40 p-4 rounded-xl border border-gray-700/50">
+                    <div class="text-xs text-gray-300">
+                      <p class="font-bold text-white">Treinamento de Redação Discursiva:</p>
+                      <p>Gere um tema localizado (ex: TI no TJPE) usando os tópicos da matéria atual.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <button id="gerarTemaRedacaoBtn" onclick="generateEssayTheme()" class="bg-gradient-to-r from-brandpurple to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-2.5 px-5 rounded-xl transition duration-200 shadow-md text-xs uppercase tracking-wide">
+                        Gerar Tema Técnico
+                      </button>
+                      <button id="verEspelhoRedacaoBtn" onclick="showEssayEspelho()" class="hidden bg-gray-700 hover:bg-gray-600 text-white font-bold py-2.5 px-5 rounded-xl transition duration-200 text-xs border border-gray-600">
+                        Ver Espelho Padrão
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Loading Theme -->
+                  <div id="essayThemeLoading" class="hidden flex flex-col items-center justify-center py-6 gap-2 text-center">
+                    <div class="animate-spin h-7 w-7 text-brandpurple rounded-full border-3 border-brandpurple border-t-transparent"></div>
+                    <span class="text-xs font-semibold text-gray-400">Gerando tema baseado nas regras de edital...</span>
+                  </div>
+
+                  <!-- Active Theme Display -->
+                  <div id="activeThemeContainer" class="hidden bg-gray-900/60 p-5 rounded-xl border border-gray-700 flex flex-col gap-3">
+                    <div>
+                      <span class="text-[10px] bg-brandpurple/30 text-purple-300 font-bold px-2 py-0.5 rounded border border-brandpurple/40 block w-max uppercase">Tema Proposto pela IA</span>
+                      <h4 class="font-display font-black text-lg text-white mt-1.5" id="essayActiveThemeTitle">Título do Tema</h4>
+                    </div>
+                    <div class="border-t border-gray-800 pt-3 flex flex-col gap-2">
+                      <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Tópicos Obrigatórios de Desenvolvimento:</span>
+                      <ul class="list-disc list-inside text-sm text-gray-300 space-y-1.5" id="essayActiveThemeTopics">
+                        <!-- Topics -->
+                      </ul>
+                    </div>
+                  </div>
+
+                  <!-- Standard response guide container (Espelho) -->
+                  <div id="essayEspelhoContainer" class="hidden bg-gray-900/80 p-5 rounded-xl border border-brandgreen/30 flex flex-col gap-2">
+                    <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                      <span class="text-xs font-bold text-brandgreen flex items-center gap-1"><span>✨</span> Espelho Padrão de Resposta (Banca)</span>
+                      <button onclick="document.getElementById('essayEspelhoContainer').classList.add('hidden')" class="text-gray-400 hover:text-white text-xs">Ocultar</button>
+                    </div>
+                    <div class="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap max-h-[300px] overflow-y-auto" id="essayEspelhoText">
+                      <!-- Content from API -->
+                    </div>
+                  </div>
+
+                  <!-- Lined Paper Sheet Area -->
+                  <div class="flex flex-col gap-2">
+                    <div class="flex items-center justify-between text-xs text-gray-400">
+                      <span>Escreva seu rascunho abaixo (máx. <span id="essayLinesLimitLabel">30</span> linhas)</span>
+                      <span class="font-bold text-gray-300" id="essayLinesCounter">0 / 30 linhas</span>
+                    </div>
+
+                    <div class="flex border border-gray-700 rounded-xl overflow-hidden shadow-inner bg-gray-900">
+                      <!-- Line indicators -->
+                      <div id="essayLineGutters" class="w-10 bg-gray-900 text-gray-600 text-xs font-mono select-none text-right py-[7px] pr-2.5 border-r border-gray-800 flex flex-col gap-[30px]">
+                        <!-- Populated by JS up to max_lines -->
+                      </div>
+                      
+                      <!-- Main editor -->
+                      <textarea id="essayEditor" oninput="updateLineCount()" placeholder="Digite ou cole sua redação aqui..." class="lined-paper flex-grow bg-transparent p-4 outline-none border-none min-h-[450px]" style="line-height: 30px;"></textarea>
+                    </div>
+
+                    <button id="submeterRedacaoBtn" onclick="submitEssayForCorrection()" class="bg-gradient-to-r from-brandgreen to-green-600 hover:from-green-600 hover:to-green-700 text-darkbg font-black py-3 px-8 rounded-xl mt-4 self-center shadow-lg transition duration-200 flex items-center gap-2">
+                      <span>📝</span> Submeter Redação para Correção Oficial
+                    </button>
+                  </div>
+
+                  <!-- Loading Correction -->
+                  <div id="essayCorrectionLoading" class="hidden flex flex-col items-center justify-center py-12 gap-3 text-center">
+                    <div class="animate-spin h-10 w-10 text-brandgreen rounded-full border-4 border-brandgreen border-t-transparent"></div>
+                    <span class="text-sm font-semibold text-gray-300">Robô Corretor lendo seu texto e aplicando a matemática do edital...</span>
+                  </div>
+
+                  <!-- Correction Results -->
+                  <div id="essayCorrectionResults" class="hidden flex flex-col gap-6 border-t border-gray-700 pt-6">
+                    
+                    <!-- Circular Score & Summary card -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center bg-gray-900/60 p-6 rounded-2xl border border-gray-700">
+                      <div class="flex flex-col items-center justify-center text-center">
+                        <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">Nota Final Computada</span>
+                        <div class="w-32 h-32 rounded-full border-4 border-brandgreen flex flex-col items-center justify-center shadow-lg bg-gray-800/80">
+                          <span class="text-3xl font-black text-white" id="correctScoreVal">0.00</span>
+                          <span class="text-xs text-gray-500 font-bold" id="correctMaxScoreVal">/ 100</span>
+                        </div>
+                      </div>
+
+                      <div class="md:col-span-2 flex flex-col gap-3">
+                        <h4 class="font-display font-bold text-white text-lg flex items-center gap-1.5">
+                          <span>🔍</span> Detalhamento do Cálculo (Fórmula Oficial)
+                        </h4>
+                        <div class="bg-gray-950 p-4 rounded-lg border border-gray-800 text-xs font-mono space-y-1.5 text-gray-300">
+                          <div>Fórmula Aplicada: <span class="text-brandorange" id="resFormulaType">Cebraspe</span></div>
+                          <div>TLE (Linhas Efetivas): <span class="text-white" id="resTLE">0</span></div>
+                          <div>Nota de Conteúdo (Macro + Estru): <span class="text-white" id="resNC">0.00</span></div>
+                          <div>Número de Desvios (NE): <span class="text-white" id="resNE">0</span></div>
+                          <div class="border-t border-gray-800 pt-1.5 font-bold text-sm flex justify-between items-center text-brandgreen">
+                            <span>FÓRMULA APLICADA:</span>
+                            <span id="resFormulaMath">NF = NC - (2 * (NE / TLE))</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Macro / Micro critique -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <!-- Macro critiques -->
+                      <div class="bg-gray-900/40 p-5 rounded-xl border border-gray-700 flex flex-col gap-3">
+                        <h5 class="font-bold text-white text-sm">Critério Macroestrutural (Conteúdo & Coesão)</h5>
+                        
+                        <div class="text-xs text-gray-300 flex flex-col gap-2">
+                          <div class="bg-gray-800/50 p-3 rounded border border-gray-700/50">
+                            <span class="font-bold text-brandpurple block mb-1">Nota de Conteúdo:</span>
+                            <span id="resScoreConteudo">Nota</span>
+                          </div>
+                          <div class="bg-gray-800/50 p-3 rounded border border-gray-700/50">
+                            <span class="font-bold text-brandpurple block mb-1">Nota de Estrutura & Coesão:</span>
+                            <span id="resScoreEstrutura">Nota</span>
+                          </div>
+                          <div class="bg-gray-800/50 p-3 rounded border border-gray-700/50">
+                            <span class="font-bold text-white block mb-1">Feedback de Abordagem do Tema:</span>
+                            <p id="resFeedbackMacro" class="leading-relaxed text-justify"></p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Micro critiques (Error table) -->
+                      <div class="bg-gray-900/40 p-5 rounded-xl border border-gray-700 flex flex-col gap-3">
+                        <h5 class="font-bold text-white text-sm">Desvios Microestruturais (Ortografia/Gramática)</h5>
+                        
+                        <div class="overflow-x-auto">
+                          <table class="w-full text-xs text-left text-gray-300">
+                            <thead class="bg-gray-800 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                              <tr>
+                                <th class="p-2 border-b border-gray-700">Linha</th>
+                                <th class="p-2 border-b border-gray-700">Desvio</th>
+                                <th class="p-2 border-b border-gray-700">Explicação</th>
+                                <th class="p-2 border-b border-gray-700">Correção</th>
+                                <th class="p-2 border-b border-gray-700">Dedução</th>
+                              </tr>
+                            </thead>
+                            <tbody id="resErrorsTableBody" class="divide-y divide-gray-800">
+                              <!-- Errors rows -->
+                            </tbody>
+                          </table>
+                        </div>
+                        <div id="noMicroErrorsMsg" class="hidden text-xs text-center py-6 text-brandgreen font-bold">
+                          ✨ Nenhum desvio microestrutural identificado! Redação limpa.
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Final Verdict -->
+                    <div class="bg-gradient-to-r from-gray-800 to-gray-700/30 p-5 rounded-xl border border-gray-700 text-sm">
+                      <span class="font-bold text-white block mb-1">Conselho / Veredicto Final:</span>
+                      <p id="resVerdict" class="text-gray-300 leading-relaxed text-justify"></p>
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- D. SCREEN: WIZARD DE CONCURSO -->
+      <section id="screenWizard" class="hidden max-w-4xl mx-auto w-full bg-gray-800/80 p-8 rounded-2xl border border-gray-700 shadow-2xl flex flex-col gap-6">
+        
+        <!-- Header & Steps stepper -->
+        <div class="flex items-center justify-between border-b border-gray-700 pb-4">
+          <div>
+            <h2 class="font-display font-black text-xl text-white" id="wizardTitle">Cadastrar Novo Concurso</h2>
+            <p class="text-xs text-gray-400">Siga as 4 etapas para cadastrar o edital e parametrizar a IA</p>
+          </div>
+          <button onclick="closeWizard()" class="text-xs text-gray-400 hover:text-white font-bold bg-gray-700 py-1 px-3 rounded-lg border border-gray-600 transition">Cancelar ✖️</button>
+        </div>
+
+        <!-- Stepper Indicator -->
+        <div class="flex items-center justify-between max-w-md mx-auto w-full text-xs font-bold text-gray-500 my-2">
+          <div class="flex flex-col items-center gap-1 active-step" id="stepInd-1">
+            <span class="w-8 h-8 rounded-full border-2 border-brandgreen flex items-center justify-center text-brandgreen" id="stepCircle-1">1</span>
+            <span>Edital</span>
+          </div>
+          <div class="flex-grow h-0.5 bg-gray-700 mx-2 mb-8" id="stepLine-1"></div>
+          <div class="flex flex-col items-center gap-1" id="stepInd-2">
+            <span class="w-8 h-8 rounded-full border-2 border-gray-700 flex items-center justify-center" id="stepCircle-2">2</span>
+            <span>Estilo</span>
+          </div>
+          <div class="flex-grow h-0.5 bg-gray-700 mx-2 mb-8" id="stepLine-2"></div>
+          <div class="flex flex-col items-center gap-1" id="stepInd-3">
+            <span class="w-8 h-8 rounded-full border-2 border-gray-700 flex items-center justify-center" id="stepCircle-3">3</span>
+            <span>Matérias</span>
+          </div>
+          <div class="flex-grow h-0.5 bg-gray-700 mx-2 mb-8" id="stepLine-3"></div>
+          <div class="flex flex-col items-center gap-1" id="stepInd-4">
+            <span class="w-8 h-8 rounded-full border-2 border-gray-700 flex items-center justify-center" id="stepCircle-4">4</span>
+            <span>Redação</span>
+          </div>
+        </div>
+
+        <!-- STEP PANELS -->
+        <div class="min-h-[300px] flex flex-col justify-center">
+          
+          <!-- STEP 1: CONTEST BASIC INFO -->
+          <div id="wizardStep-1" class="wizard-step-panel flex flex-col gap-4">
+            <h3 class="font-display font-bold text-lg text-white mb-2">Dados do Certame</h3>
+            
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-bold text-gray-400 uppercase tracking-wide">Nome do Concurso / Edital</label>
+              <input type="text" id="wizContestName" placeholder="Ex: Analista Judiciário - TJPE 2026" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-gray-200 focus:outline-none focus:border-brandgreen">
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-bold text-gray-400 uppercase tracking-wide">Banca Examinadora</label>
+              <select id="wizContestBoard" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-gray-200 focus:outline-none focus:border-brandgreen">
+                <option value="IBFC">IBFC</option>
+                <option value="Cebraspe">Cebraspe</option>
+                <option value="FGV">FGV</option>
+                <option value="FCC">FCC</option>
+                <option value="VUNESP">VUNESP</option>
+                <option value="Outra">Outra Banca</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- STEP 2: QUESTIONS STYLE -->
+          <div id="wizardStep-2" class="wizard-step-panel hidden flex flex-col gap-4">
+            <h3 class="font-display font-bold text-lg text-white mb-2">Estilo de Cobrança das Questões</h3>
+            <p class="text-xs text-gray-400">Defina o formato de resposta das questões objetivas de treinamento.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+              <label class="border-2 border-brandpurple/50 bg-purple-950/20 hover:bg-purple-950/30 p-5 rounded-2xl cursor-pointer flex items-center gap-4 transition text-left" id="wizStyleLabel-multi">
+                <input type="radio" name="wizExamStyle" value="multipla_escolha" checked class="h-4 w-4 text-brandpurple focus:ring-0" onchange="toggleWizStyleUI()">
+                <div>
+                  <span class="font-display font-bold text-sm block text-white">Múltipla Escolha</span>
+                  <span class="text-xs text-gray-400">Alternativas A, B, C, D ou E para seleção.</span>
+                </div>
+              </label>
+
+              <label class="border border-gray-700 bg-gray-900/50 hover:bg-gray-800/50 p-5 rounded-2xl cursor-pointer flex items-center gap-4 transition text-left" id="wizStyleLabel-ce">
+                <input type="radio" name="wizExamStyle" value="certo_errado" class="h-4 w-4 text-brandpurple focus:ring-0" onchange="toggleWizStyleUI()">
+                <div>
+                  <span class="font-display font-bold text-sm block text-white">Certo / Errado</span>
+                  <span class="text-xs text-gray-400">Estilo Cebraspe, onde julga-se cada item.</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- STEP 3: SUBJECTS & TOPICS (ITERATIVE) -->
+          <div id="wizardStep-3" class="wizard-step-panel hidden flex flex-col gap-4">
+            <h3 class="font-display font-bold text-lg text-white mb-2">Cadastrar Conteúdo Programático (Matérias & Assuntos)</h3>
+            <p class="text-xs text-gray-400">Insira as matérias e seus tópicos associados. Você pode adicionar a taxa de relevância/recorrência em prova baseada no Raio-X de estatísticas da banca.</p>
+
+            <!-- Subject Input Row -->
+            <div class="bg-gray-900/40 p-4 rounded-xl border border-gray-700 flex flex-wrap gap-2.5 items-end">
+              <div class="flex-grow min-w-[200px] flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Nome da Matéria</label>
+                <input type="text" id="wizSubjectName" placeholder="Ex: Banco de Dados" class="bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs text-gray-200 focus:outline-none focus:border-brandgreen">
+              </div>
+              <button type="button" onclick="wizAddSubject()" class="bg-brandgreen hover:bg-green-600 text-darkbg font-bold text-xs py-2.5 px-4 rounded-lg transition duration-150">
+                + Adicionar Matéria
+              </button>
+            </div>
+
+            <!-- Subject Accordion / Topic Creator List -->
+            <div id="wizSubjectsList" class="flex flex-col gap-3 max-h-[250px] overflow-y-auto mt-2">
+              <!-- Dynamically populated subjects list for editing topics -->
+            </div>
+          </div>
+
+          <!-- STEP 4: ADVANCED ESSAY CONFIGURATION -->
+          <div id="wizardStep-4" class="wizard-step-panel hidden flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-display font-bold text-lg text-white">Configurações de Redação Discursiva</h3>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="wizEssayEnabled" class="sr-only peer" onchange="toggleWizardEssayFields()">
+                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brandgreen"></div>
+                <span class="ml-3 text-xs font-bold text-gray-300 uppercase">Habilitar Redação</span>
+              </label>
+            </div>
+
+            <div id="wizEssayFieldsContainer" class="hidden flex flex-col gap-4 border-t border-gray-700 pt-4">
+              
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="flex flex-col gap-1">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Tipo de Redação</label>
+                  <select id="wizEssayType" class="bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none">
+                    <option value="Dissertativa-Argumentativa">Dissertativa-Argumentativa</option>
+                    <option value="Estudo de Caso">Estudo de Caso</option>
+                    <option value="Questão Discursiva">Questão Discursiva</option>
+                  </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Limite de Linhas</label>
+                  <input type="number" id="wizEssayMaxLines" value="30" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-200 focus:outline-none">
+                </div>
+                <div class="flex flex-col gap-1">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide font-black text-brandorange">Fórmula Matemática</label>
+                  <select id="wizEssayFormulaType" onchange="updateWizFormulaExplanation()" class="bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none">
+                    <option value="cebraspe">Cebraspe (NF = NC - K * NE/TLE)</option>
+                    <option value="fgv">FGV (NF = NC - Desconto Direto)</option>
+                    <option value="fcc">FCC (NF = NC - Desconto Direto)</option>
+                    <option value="personalizada">Personalizada</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="flex flex-col gap-1">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Pontuação Máxima (Macro)</label>
+                  <input type="number" id="wizEssayMaxMacro" value="100.00" step="0.01" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-200">
+                </div>
+                <div class="flex flex-col gap-1">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Pontuação Estrutura Máx</label>
+                  <input type="number" id="wizEssayMaxStructure" value="30.00" step="0.01" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-200">
+                </div>
+                <div class="flex flex-col gap-1">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Pontuação Conteúdo Máx</label>
+                  <input type="number" id="wizEssayMaxContent" value="70.00" step="0.01" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-200">
+                </div>
+                <div class="flex flex-col gap-1">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Multiplicador de Erro (K)</label>
+                  <input type="number" id="wizEssayMultiplier" value="2.00" step="0.01" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-200">
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Explicação da Fórmula de Correção</label>
+                <input type="text" id="wizEssayFormulaExplanation" value="NF = NC - (K * (NE / TLE))" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-xs text-gray-200 focus:outline-none">
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Regras/Diretrizes do Edital (Colado)</label>
+                  <textarea id="wizEssayGuidelines" rows="3" placeholder="Diretrizes copiadas do edital do concurso..." class="bg-gray-900 border border-gray-700 rounded-xl p-3 text-xs text-gray-200 focus:outline-none"></textarea>
+                </div>
+                <div class="flex flex-col gap-1">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Observações Complementares</label>
+                  <textarea id="wizEssayNotes" rows="3" placeholder="Observações de estudos..." class="bg-gray-900 border border-gray-700 rounded-xl p-3 text-xs text-gray-200 focus:outline-none"></textarea>
+                </div>
+              </div>
+
+              <!-- Micro Deductions Config -->
+              <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-800 flex flex-col gap-3">
+                <span class="text-xs font-bold text-white block">Taxas de Dedução de Erros Microestruturais (JSON configurável)</span>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <label class="block text-[10px] text-gray-400 mb-1">Ortografia / Grafia</label>
+                    <input type="number" id="wizDeductSpelling" value="0.20" step="0.01" class="w-full bg-gray-800 border border-gray-750 p-2 rounded">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-gray-400 mb-1">Gramática / Morfo</label>
+                    <input type="number" id="wizDeductGrammar" value="0.30" step="0.01" class="w-full bg-gray-800 border border-gray-750 p-2 rounded">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-gray-400 mb-1">Sintaxe / Frase</label>
+                    <input type="number" id="wizDeductSyntax" value="0.30" step="0.01" class="w-full bg-gray-800 border border-gray-750 p-2 rounded">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-gray-400 mb-1">Vocabulário / Precisão</label>
+                    <input type="number" id="wizDeductVocabulary" value="0.20" step="0.01" class="w-full bg-gray-800 border border-gray-750 p-2 rounded">
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Wizard Navigation Footer -->
+        <div class="flex items-center justify-between border-t border-gray-700 pt-4">
+          <button id="wizBackBtn" onclick="wizardPrev()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-5 rounded-lg text-sm transition">Voltar</button>
+          <button id="wizNextBtn" onclick="wizardNext()" class="bg-brandgreen hover:bg-green-600 text-darkbg font-extrabold py-2.5 px-6 rounded-lg text-sm transition">Próximo</button>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- O modal de configurações foi excluído para configuração permanente -->
+
+  <footer class="bg-gray-900 border-t border-gray-800 text-center py-4 px-6 text-xs text-gray-500">
+    © 2026 EduTech Gamificação Concursos. Feito com orgulho de engenharia.
+  </footer>
+
+  <!-- FRONTEND LOGIC -->
+  <script>
+    // ==========================================
+    // 1. GERENCIAMENTO DE BANCO DE DADOS HÍBRIDO (LOCAL / SUPABASE)
+    // ==========================================
+    class DatabaseService {
+      constructor() {
+        this.useSupabase = false;
+        this.supabaseClient = null;
+        this.userId = "default-user-uuid"; // ID de usuário Mock padrão
+        this.init();
+      }
+
+      init() {
+        // Credenciais permanentes do projeto "Estudos" no Supabase
+        const url = "https://xuzangohhcohrbaipiik.supabase.co";
+        
+        // =========================================================================
+        // IMPORTANTE: Insira sua chave anon do Supabase na constante abaixo.
+        // Se a chave for mantida como 'SUA_SUPABASE_ANON_KEY_AQUI', a plataforma rodará em modo Mock.
+        // =========================================================================
+        const key = "SUA_SUPABASE_ANON_KEY_AQUI"; 
+        
+        if (url && key && key !== "SUA_SUPABASE_ANON_KEY_AQUI" && window.supabase) {
+          try {
+            this.supabaseClient = window.supabase.createClient(url, key);
+            this.useSupabase = true;
+            console.log("Supabase Cloud conectado com sucesso!");
+          } catch (e) {
+            console.error("Falha ao inicializar Supabase: ", e);
+            this.useSupabase = false;
+            this.fallbackToMock();
+          }
+        } else {
+          this.useSupabase = false;
+          this.fallbackToMock();
+        }
+      }
+
+      fallbackToMock() {
+        console.log("Banco rodando em Modo Local (Simulado localStorage).");
+        // Seed default dataset if missing
+        if (!localStorage.getItem('edutech_mock_db')) {
+          this.seedMockDB();
+        }
+      }
+
+      // Seed mock db data
+      seedMockDB() {
+        const defaultDB = {
+          profiles: [{
+            id: "default-user-uuid",
+            updated_at: new Date().toISOString(),
+            username: "helton_leite",
+            full_name: "Helton Leite",
+            avatar_url: "https://api.dicebear.com/7.x/bottts/svg?seed=helton",
+            total_score: 1850
+          }],
+          contests: [{
+            id: "contest-tjpe-uuid",
+            user_id: "default-user-uuid",
+            name: "TJPE - Analista de TI",
+            board: "IBFC",
+            exam_style: "multipla_escolha",
+            created_at: new Date().toISOString()
+          }],
+          subjects: [
+            { id: "subj-software-uuid", contest_id: "contest-tjpe-uuid", name: "Metodologias de Desenvolvimento e Arquitetura" },
+            { id: "subj-seg-uuid", contest_id: "contest-tjpe-uuid", name: "Segurança da Informação" }
+          ],
+          topics: [
+            { id: "topic-agile-uuid", subject_id: "subj-software-uuid", title: "Metodologias Ágeis (Scrum, Kanban)", theory_content: "O Scrum é um framework ágil iterativo e incremental para gerenciamento de projetos. Ele divide o trabalho em Sprints (ciclos de 2-4 semanas), com papéis claros: Scrum Master, Product Owner e Developers. O Kanban é focado na visualização do fluxo de trabalho e otimização das entregas, limitando o WIP (Work In Progress)." },
+            { id: "topic-arch-uuid", subject_id: "subj-software-uuid", title: "Arquitetura de Software e Microsserviços", theory_content: "A arquitetura de microsserviços divide um sistema complexo em múltiplos serviços independentes que se comunicam através de APIs RESTful ou mensageria. Cada serviço tem seu próprio banco de dados e pode ser escalado isoladamente." },
+            { id: "topic-crypto-uuid", subject_id: "subj-seg-uuid", title: "Criptografia Simétrica e Assimétrica", theory_content: "A criptografia simétrica usa uma chave única e compartilhada para encriptar e decodificar dados (ex: AES). A criptografia assimétrica utiliza um par de chaves relacionadas matematicamente: uma chave pública (divulgada a todos) e uma chave privada (mantida em segredo), como o algoritmo RSA." }
+          ],
+          topic_recurrence_stats: [
+            { id: "stats-agile", topic_id: "topic-agile-uuid", recurrence_percentage: 85.00, notes: "IBFC adora cobrar as cerimônias do Scrum (Daily, Review, Retrospective) no TJPE.", updated_at: new Date().toISOString() },
+            { id: "stats-arch", topic_id: "topic-arch-uuid", recurrence_percentage: 65.00, notes: "Conceitos de acoplamento e orquestração de microsserviços.", updated_at: new Date().toISOString() },
+            { id: "stats-crypto", topic_id: "topic-crypto-uuid", recurrence_percentage: 95.00, notes: "Criptografia assimétrica (chaves pública/privada) cai em todas as provas da área jurídica.", updated_at: new Date().toISOString() }
+          ],
+          study_materials: [
+            { id: "mat-agile", topic_id: "topic-agile-uuid", material_type: "pdf_text", content_data: "Scrum Guide oficial resumido: A Daily Scrum é uma reunião de 15 minutos para os desenvolvedores. O Product Owner gerencia o Product Backlog. A Sprint Review serve para inspecionar os resultados e adaptar o backlog.", display_name: "Guia Scrum Compacto.txt", created_at: new Date().toISOString() },
+            { id: "mat-crypto", topic_id: "topic-crypto-uuid", material_type: "web_link", content_data: "https://www.gov.br/criptografia-infraestrutura-chaves-publicas-icp-brasil", display_name: "Link ICP-Brasil Governamental", created_at: new Date().toISOString() }
+          ],
+          essay_configs: [{
+            id: "config-tjpe",
+            contest_id: "contest-tjpe-uuid",
+            guidelines: "A redação discursiva deverá versar sobre tópicos de infraestrutura tecnológica do Tribunal, em especial computação segura e conformidade legal.",
+            essay_type: "Dissertativa-Argumentativa",
+            max_lines: 30,
+            complementary_notes: "Banca preza por fundamentação técnica detalhada aplicada ao ecossistema do TJPE.",
+            macro_score_max: 100.00,
+            structure_score_max: 30.00,
+            content_score_max: 70.00,
+            error_deduction_rates: {
+              spelling_error_deduction: 0.20,
+              grammatical_error_deduction: 0.30,
+              syntax_error_deduction: 0.30,
+              vocabulary_error_deduction: 0.20
+            },
+            formula_type: "cebraspe",
+            formula_multiplier: 2.00,
+            formula_explanation: "NF = NC - (2 * (NE / TLE))",
+            created_at: new Date().toISOString()
+          }],
+          user_essays: [
+            {
+              id: "essay-1",
+              user_id: "default-user-uuid",
+              essay_config_id: "config-tjpe",
+              prompt_theme: "Segurança de dados sensíveis e LGPD no Processo Judicial Eletrônico (PJe) do TJPE.",
+              user_draft: "No cenário atual de digitalização do TJPE, a segurança cibernética tornou-se um pilar fundamental.\nEsses sistemas houveram falhas de criptografia inicial, o que demanda o uso de algoritmos simétricos e assimétricos.\nA proteção dos dados do cidadão assegura a integridade das sentenças judiciais emitidas pelos magistrados.",
+              score: 82.50,
+              eval_report: {
+                pontuacaoFinal: 82.50,
+                linhasEfetivamenteEscritas: 20,
+                macroestruturaFeedback: "O candidato abordou bem a importância da LGPD no PJe e introduziu a discussão de criptografia.",
+                errosMicroestrutura: [
+                  { linha: 2, trecho: "houveram falhas", erro: "Concordância verbal incorreta do verbo haver no sentido de existir.", correcao: "houve falhas", penalidadeAplicada: 0.30 }
+                ],
+                pontuacaoPorCriterio: {
+                  conteudo: "Excelente domínio sobre a infraestrutura do PJe do TJPE e leis vigentes. (65.00 / 70.00)",
+                  estruturaCoesao: "Ótima concatenação de parágrafos e termos conectivos. (28.00 / 30.00)"
+                },
+                veredictoFinal: "Ótimo texto técnico. Cuidado apenas com a concordância do verbo haver impessoal."
+              },
+              submitted_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+              id: "essay-2",
+              user_id: "default-user-uuid",
+              essay_config_id: "config-tjpe",
+              prompt_theme: "Implementação de microsserviços e governança de dados no ecossistema de TI do TJPE.",
+              user_draft: "A governança tecnológica do judiciário requer escalabilidade. O uso de Kubernetes permite orquestração.\nA arquitetura baseada em microsserviços assegura que sistemas paralelos não entrem em colapso devido à sobrecarga de acessos.\nA segurança das informações nos cartórios virtuais é otimizada por meio de autenticação de dois fatores e controle rígido.",
+              score: 93.00,
+              eval_report: {
+                pontuacaoFinal: 93.00,
+                linhasEfetivamenteEscritas: 24,
+                macroestruturaFeedback: "Abordagem robusta sobre Kubernetes, contêineres e resiliência de microsserviços no tribunal.",
+                errosMicroestrutura: [],
+                pontuacaoPorCriterio: {
+                  conteudo: "Descrição analítica muito precisa e alinhada com as necessidades modernas do tribunal. (68.00 / 70.00)",
+                  estruturaCoesao: "Texto fluido, com pontuação excelente e boa paragrafação. (25.00 / 30.00)"
+                },
+                veredictoFinal: "Atingiu alto nível técnico. Excelente coesão interna."
+              },
+              submitted_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+            }
+          ],
+          user_progress: [
+            { id: "prog-1", user_id: "default-user-uuid", topic_id: "topic-agile-uuid", correct_count: 14, incorrect_count: 3, last_played: new Date().toISOString() },
+            { id: "prog-2", user_id: "default-user-uuid", topic_id: "topic-arch-uuid", correct_count: 5, incorrect_count: 8, last_played: new Date().toISOString() },
+            { id: "prog-3", user_id: "default-user-uuid", topic_id: "topic-crypto-uuid", correct_count: 18, incorrect_count: 2, last_played: new Date().toISOString() }
+          ]
+        };
+        localStorage.setItem('edutech_mock_db', JSON.stringify(defaultDB));
+      }
+
+      getMockDB() {
+        return JSON.parse(localStorage.getItem('edutech_mock_db'));
+      }
+
+      saveMockDB(db) {
+        localStorage.setItem('edutech_mock_db', JSON.stringify(db));
+      }
+
+      // --- WRAPPER CRUD OPERAÇÕES ---
+
+      async getProfile() {
+        if (this.useSupabase) {
+          const { data, error } = await this.supabaseClient.from('profiles').select('*').eq('id', this.userId).maybeSingle();
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          return db.profiles.find(p => p.id === this.userId);
+        }
+      }
+
+      async updateProfileScore(scoreChange) {
+        if (this.useSupabase) {
+          // Utiliza rpc ou faz select + update
+          const profile = await this.getProfile();
+          const newScore = (profile?.total_score || 0) + scoreChange;
+          const { error } = await this.supabaseClient.from('profiles').update({ total_score: newScore, updated_at: new Date().toISOString() }).eq('id', this.userId);
+          if (error) throw error;
+          return newScore;
+        } else {
+          const db = this.getMockDB();
+          const pIdx = db.profiles.findIndex(p => p.id === this.userId);
+          if (pIdx !== -1) {
+            db.profiles[pIdx].total_score += scoreChange;
+            db.profiles[pIdx].updated_at = new Date().toISOString();
+            this.saveMockDB(db);
+            return db.profiles[pIdx].total_score;
+          }
+          return 0;
+        }
+      }
+
+      async getContests() {
+        if (this.useSupabase) {
+          const { data, error } = await this.supabaseClient.from('contests').select('*').order('created_at', { ascending: true });
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          return db.contests;
+        }
+      }
+
+      async saveContest(name, board, examStyle, activeContestId = null) {
+        if (this.useSupabase) {
+          if (activeContestId) {
+            const { data, error } = await this.supabaseClient.from('contests').update({ name, board, exam_style: examStyle }).eq('id', activeContestId).select().single();
+            if (error) throw error;
+            return data;
+          } else {
+            const { data, error } = await this.supabaseClient.from('contests').insert({ name, board, exam_style: examStyle, user_id: this.userId }).select().single();
+            if (error) throw error;
+            return data;
+          }
+        } else {
+          const db = this.getMockDB();
+          if (activeContestId) {
+            const idx = db.contests.findIndex(c => c.id === activeContestId);
+            if (idx !== -1) {
+              db.contests[idx].name = name;
+              db.contests[idx].board = board;
+              db.contests[idx].exam_style = examStyle;
+              this.saveMockDB(db);
+              return db.contests[idx];
+            }
+          } else {
+            const newContest = {
+              id: "contest-" + Math.random().toString(36).substr(2, 9),
+              user_id: this.userId,
+              name,
+              board,
+              exam_style: examStyle,
+              created_at: new Date().toISOString()
+            };
+            db.contests.push(newContest);
+            this.saveMockDB(db);
+            return newContest;
+          }
+        }
+      }
+
+      async deleteContest(contestId) {
+        if (this.useSupabase) {
+          const { error } = await this.supabaseClient.from('contests').delete().eq('id', contestId);
+          if (error) throw error;
+        } else {
+          const db = this.getMockDB();
+          // Cascade delete simulation
+          db.contests = db.contests.filter(c => c.id !== contestId);
+          const activeSubjects = db.subjects.filter(s => s.contest_id === contestId);
+          const subjIds = activeSubjects.map(s => s.id);
+          db.subjects = db.subjects.filter(s => s.contest_id !== contestId);
+          
+          const activeTopics = db.topics.filter(t => subjIds.includes(t.subject_id));
+          const topicIds = activeTopics.map(t => t.id);
+          db.topics = db.topics.filter(t => !subjIds.includes(t.subject_id));
+          
+          db.topic_recurrence_stats = db.topic_recurrence_stats.filter(s => !topicIds.includes(s.topic_id));
+          db.study_materials = db.study_materials.filter(m => !topicIds.includes(m.topic_id));
+          db.essay_configs = db.essay_configs.filter(e => e.contest_id !== contestId);
+          // Redações
+          const essayConfigs = db.essay_configs.filter(e => e.contest_id === contestId);
+          const ecIds = essayConfigs.map(e => e.id);
+          db.user_essays = db.user_essays.filter(u => !ecIds.includes(u.essay_config_id));
+          
+          db.user_progress = db.user_progress.filter(p => !topicIds.includes(p.topic_id));
+          
+          this.saveMockDB(db);
+        }
+      }
+
+      async getSubjects(contestId) {
+        if (this.useSupabase) {
+          const { data, error } = await this.supabaseClient.from('subjects').select('*').eq('contest_id', contestId).order('created_at', { ascending: true });
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          return db.subjects.filter(s => s.contest_id === contestId);
+        }
+      }
+
+      async createSubject(contestId, name) {
+        if (this.useSupabase) {
+          const { data, error } = await this.supabaseClient.from('subjects').insert({ contest_id: contestId, name }).select().single();
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          const newSubj = {
+            id: "subj-" + Math.random().toString(36).substr(2, 9),
+            contest_id: contestId,
+            name,
+            created_at: new Date().toISOString()
+          };
+          db.subjects.push(newSubj);
+          this.saveMockDB(db);
+          return newSubj;
+        }
+      }
+
+      async getTopics(subjectId) {
+        if (this.useSupabase) {
+          const { data, error } = await this.supabaseClient.from('topics').select('*').eq('subject_id', subjectId).order('created_at', { ascending: true });
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          return db.topics.filter(t => t.subject_id === subjectId);
+        }
+      }
+
+      async createTopic(subjectId, title, theory = "") {
+        if (this.useSupabase) {
+          const { data, error } = await this.supabaseClient.from('topics').insert({ subject_id: subjectId, title, theory_content: theory }).select().single();
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          const newTopic = {
+            id: "topic-" + Math.random().toString(36).substr(2, 9),
+            subject_id: subjectId,
+            title,
+            theory_content: theory,
+            created_at: new Date().toISOString()
+          };
+          db.topics.push(newTopic);
+          this.saveMockDB(db);
+          return newTopic;
+        }
+      }
+
+      async updateTopicTheory(topicId, theory) {
+        if (this.useSupabase) {
+          const { error } = await this.supabaseClient.from('topics').update({ theory_content: theory }).eq('id', topicId);
+          if (error) throw error;
+        } else {
+          const db = this.getMockDB();
+          const tIdx = db.topics.findIndex(t => t.id === topicId);
+          if (tIdx !== -1) {
+            db.topics[tIdx].theory_content = theory;
+            this.saveMockDB(db);
+          }
+        }
+      }
+
+      async getTopicRecurrence(topicId) {
+        if (this.useSupabase) {
+          const { data, error } = await this.supabaseClient.from('topic_recurrence_stats').select('*').eq('topic_id', topicId).maybeSingle();
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          return db.topic_recurrence_stats.find(s => s.topic_id === topicId) || null;
+        }
+      }
+
+      async saveTopicRecurrence(topicId, percentage, notes) {
+        if (this.useSupabase) {
+          const existing = await this.getTopicRecurrence(topicId);
+          if (existing) {
+            const { data, error } = await this.supabaseClient.from('topic_recurrence_stats').update({ recurrence_percentage: percentage, notes, updated_at: new Date().toISOString() }).eq('topic_id', topicId).select().single();
+            if (error) throw error;
+            return data;
+          } else {
+            const { data, error } = await this.supabaseClient.from('topic_recurrence_stats').insert({ topic_id: topicId, recurrence_percentage: percentage, notes }).select().single();
+            if (error) throw error;
+            return data;
+          }
+        } else {
+          const db = this.getMockDB();
+          const idx = db.topic_recurrence_stats.findIndex(s => s.topic_id === topicId);
+          const record = {
+            recurrence_percentage: parseFloat(percentage),
+            notes,
+            updated_at: new Date().toISOString()
+          };
+          if (idx !== -1) {
+            db.topic_recurrence_stats[idx] = { ...db.topic_recurrence_stats[idx], ...record };
+            this.saveMockDB(db);
+            return db.topic_recurrence_stats[idx];
+          } else {
+            const newStats = {
+              id: "stats-" + Math.random().toString(36).substr(2, 9),
+              topic_id: topicId,
+              ...record
+            };
+            db.topic_recurrence_stats.push(newStats);
+            this.saveMockDB(db);
+            return newStats;
+          }
+        }
+      }
+
+      async getStudyMaterials(topicId) {
+        if (this.useSupabase) {
+          const { data, error } = await this.supabaseClient.from('study_materials').select('*').eq('topic_id', topicId).order('created_at', { ascending: true });
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          return db.study_materials.filter(m => m.topic_id === topicId);
+        }
+      }
+
+      async addStudyMaterial(topicId, type, content, name) {
+        if (this.useSupabase) {
+          const { data, error } = await this.supabaseClient.from('study_materials').insert({ topic_id: topicId, material_type: type, content_data: content, display_name: name }).select().single();
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          const newMat = {
+            id: "mat-" + Math.random().toString(36).substr(2, 9),
+            topic_id: topicId,
+            material_type: type,
+            content_data: content,
+            display_name: name,
+            created_at: new Date().toISOString()
+          };
+          db.study_materials.push(newMat);
+          this.saveMockDB(db);
+          return newMat;
+        }
+      }
+
+      async deleteStudyMaterial(id) {
+        if (this.useSupabase) {
+          const { error } = await this.supabaseClient.from('study_materials').delete().eq('id', id);
+          if (error) throw error;
+        } else {
+          const db = this.getMockDB();
+          db.study_materials = db.study_materials.filter(m => m.id !== id);
+          this.saveMockDB(db);
+        }
+      }
+
+      async getEssayConfig(contestId) {
+        if (this.useSupabase) {
+          const { data, error } = await this.supabaseClient.from('essay_configs').select('*').eq('contest_id', contestId).maybeSingle();
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          return db.essay_configs.find(e => e.contest_id === contestId) || null;
+        }
+      }
+
+      async saveEssayConfig(contestId, configData) {
+        if (this.useSupabase) {
+          const existing = await this.getEssayConfig(contestId);
+          if (existing) {
+            const { data, error } = await this.supabaseClient.from('essay_configs').update(configData).eq('contest_id', contestId).select().single();
+            if (error) throw error;
+            return data;
+          } else {
+            const { data, error } = await this.supabaseClient.from('essay_configs').insert({ contest_id: contestId, ...configData }).select().single();
+            if (error) throw error;
+            return data;
+          }
+        } else {
+          const db = this.getMockDB();
+          const idx = db.essay_configs.findIndex(e => e.contest_id === contestId);
+          const record = {
+            contest_id: contestId,
+            ...configData
+          };
+          if (idx !== -1) {
+            db.essay_configs[idx] = { ...db.essay_configs[idx], ...record };
+            this.saveMockDB(db);
+            return db.essay_configs[idx];
+          } else {
+            const newConfig = {
+              id: "config-" + Math.random().toString(36).substr(2, 9),
+              ...record,
+              created_at: new Date().toISOString()
+            };
+            db.essay_configs.push(newConfig);
+            this.saveMockDB(db);
+            return newConfig;
+          }
+        }
+      }
+
+      async getUserEssays(contestId) {
+        const config = await this.getEssayConfig(contestId);
+        if (!config) return [];
+        
+        if (this.useSupabase) {
+          const { data, error } = await this.supabaseClient.from('user_essays').select('*').eq('user_id', this.userId).eq('essay_config_id', config.id).order('submitted_at', { ascending: true });
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          return db.user_essays.filter(e => e.user_id === this.userId && e.essay_config_id === config.id);
+        }
+      }
+
+      async saveUserEssay(essayConfigId, theme, draft, score, report) {
+        if (this.useSupabase) {
+          const { data, error } = await this.supabaseClient.from('user_essays').insert({
+            user_id: this.userId,
+            essay_config_id: essayConfigId,
+            prompt_theme: theme,
+            user_draft: draft,
+            score,
+            eval_report: report
+          }).select().single();
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          const newEssay = {
+            id: "essay-" + Math.random().toString(36).substr(2, 9),
+            user_id: this.userId,
+            essay_config_id: essayConfigId,
+            prompt_theme: theme,
+            user_draft: draft,
+            score: parseFloat(score),
+            eval_report: report,
+            submitted_at: new Date().toISOString()
+          };
+          db.user_essays.push(newEssay);
+          this.saveMockDB(db);
+          return newEssay;
+        }
+      }
+
+      async getUserProgress() {
+        if (this.useSupabase) {
+          const { data, error } = await this.supabaseClient.from('user_progress').select('*').eq('user_id', this.userId);
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          return db.user_progress.filter(p => p.user_id === this.userId);
+        }
+      }
+
+      async recordQuestionAnswer(topicId, isCorrect) {
+        if (this.useSupabase) {
+          // Selecionar ou inicializar
+          const { data: existing, error: selectErr } = await this.supabaseClient.from('user_progress').select('*').eq('user_id', this.userId).eq('topic_id', topicId).maybeSingle();
+          let correct = existing?.correct_count || 0;
+          let incorrect = existing?.incorrect_count || 0;
+          
+          if (isCorrect) correct++;
+          else incorrect++;
+
+          const { data, error } = await this.supabaseClient.from('user_progress').upsert({
+            user_id: this.userId,
+            topic_id: topicId,
+            correct_count: correct,
+            incorrect_count: incorrect,
+            last_played: new Date().toISOString()
+          }, { onConflict: 'user_id,topic_id' }).select().single();
+          
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          const idx = db.user_progress.findIndex(p => p.user_id === this.userId && p.topic_id === topicId);
+          if (idx !== -1) {
+            if (isCorrect) db.user_progress[idx].correct_count++;
+            else db.user_progress[idx].incorrect_count++;
+            db.user_progress[idx].last_played = new Date().toISOString();
+          } else {
+            db.user_progress.push({
+              id: "prog-" + Math.random().toString(36).substr(2, 9),
+              user_id: this.userId,
+              topic_id: topicId,
+              correct_count: isCorrect ? 1 : 0,
+              incorrect_count: isCorrect ? 0 : 1,
+              last_played: new Date().toISOString()
+            });
+          }
+          this.saveMockDB(db);
+        }
+      }
+    }
+
+    const db = new DatabaseService();
+
+    // ==========================================
+    // 2. CONTROLES DE INTERFACE GLOBAL E TOASTS
+    // ==========================================
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `p-4 rounded-xl shadow-lg border text-xs font-bold text-white transition-all duration-300 transform translate-x-20 opacity-0 flex items-center gap-2 pointer-events-auto max-w-sm cursor-pointer`;
+      
+      if (type === 'success') {
+        toast.className += ' bg-emerald-900/90 border-emerald-500 text-emerald-200';
+        toast.innerHTML = `<span>🟢</span> ${message}`;
+      } else if (type === 'error') {
+        toast.className += ' bg-red-950/90 border-red-500 text-red-200';
+        toast.innerHTML = `<span>🔴</span> ${message}`;
+      } else {
+        toast.className += ' bg-yellow-950/90 border-yellow-500 text-yellow-200';
+        toast.innerHTML = `<span>🟡</span> ${message}`;
+      }
+
+      container.appendChild(toast);
+      
+      // Animate in
+      setTimeout(() => {
+        toast.classList.remove('translate-x-20', 'opacity-0');
+      }, 50);
+
+      const hideToast = () => {
+        toast.classList.add('translate-x-20', 'opacity-0');
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      };
+
+      toast.onclick = hideToast;
+      setTimeout(hideToast, 4000);
+    }
+
+    // ==========================================
+    // 3. ESTADOS DA APLICAÇÃO E VARIÁVEIS GLOBAIS
+    // ==========================================
+    let currentProfile = null;
+    let contestsList = [];
+    let activeContest = null;
+    let activeSubject = null;
+    let activeTopic = null;
+    let activeTopicStats = null;
+    let activeWorkspaceTab = 'theory';
+
+    // Gráficos instâncias
+    let questionsChartInstance = null;
+    let essayChartInstance = null;
+
+    // Wizard Variables
+    let wizardCurrentStep = 1;
+    let wizSubjects = []; // { tempId, name, topics: [ { tempId, title, percentage, notes } ] }
+
+    // Redação Ativa
+    let activeEssayTheme = null;
+
+    // Ao iniciar
+    document.addEventListener('DOMContentLoaded', async () => {
+      await syncData();
+    });
+
+    // Sincroniza dados com o banco e renderiza
+    async function syncData() {
+      try {
+        db.init();
+        currentProfile = await db.getProfile();
+        if (currentProfile) {
+          document.getElementById('headerPlayerName').textContent = currentProfile.full_name;
+          document.getElementById('headerPlayerScore').textContent = currentProfile.total_score;
+          document.getElementById('headerAvatar').src = currentProfile.avatar_url;
+        }
+
+        contestsList = await db.getContests();
+        renderContestsList();
+
+        // Se houver concursos, seleciona o primeiro se nenhum selecionado
+        if (contestsList.length > 0) {
+          if (!activeContest) {
+            await selectContest(contestsList[0].id);
+          } else {
+            // Recarregar concurso ativo atualizado
+            const refreshed = contestsList.find(c => c.id === activeContest.id);
+            if (refreshed) {
+              activeContest = refreshed;
+              await loadDashboardData();
+            } else {
+              await selectContest(contestsList[0].id);
+            }
+          }
+        } else {
+          activeContest = null;
+          showScreen('screenWelcome');
+        }
+      } catch (e) {
+        console.error(e);
+        showToast("Erro ao sincronizar dados. Rodando local.", "error");
+        db.fallbackToMock();
+      }
+    }
+
+    function showScreen(screenId) {
+      document.getElementById('screenWelcome').classList.add('hidden');
+      document.getElementById('screenDashboard').classList.add('hidden');
+      document.getElementById('screenStudyHub').classList.add('hidden');
+      document.getElementById('screenWizard').classList.add('hidden');
+      
+      document.getElementById(screenId).classList.remove('hidden');
+    }
+
+    // ==========================================
+    // 4. BANCA / WIZARD E CADASTRO DE CONCURSO
+    // ==========================================
+    function openWizard() {
+      wizardCurrentStep = 1;
+      wizSubjects = [];
+      document.getElementById('wizContestName').value = '';
+      document.getElementById('wizContestBoard').value = 'IBFC';
+      document.getElementById('wizEssayEnabled').checked = false;
+      document.getElementById('wizSubjectsList').innerHTML = '';
+      
+      // Default essay setup
+      document.getElementById('wizEssayType').value = 'Dissertativa-Argumentativa';
+      document.getElementById('wizEssayMaxLines').value = 30;
+      document.getElementById('wizEssayFormulaType').value = 'cebraspe';
+      document.getElementById('wizEssayMaxMacro').value = 100.00;
+      document.getElementById('wizEssayMaxStructure').value = 30.00;
+      document.getElementById('wizEssayMaxContent').value = 70.00;
+      document.getElementById('wizEssayMultiplier').value = 2.00;
+      document.getElementById('wizEssayFormulaExplanation').value = "NF = NC - (2 * (NE / TLE))";
+      document.getElementById('wizEssayGuidelines').value = '';
+      document.getElementById('wizEssayNotes').value = '';
+      document.getElementById('wizDeductSpelling').value = 0.20;
+      document.getElementById('wizDeductGrammar').value = 0.30;
+      document.getElementById('wizDeductSyntax').value = 0.30;
+      document.getElementById('wizDeductVocabulary').value = 0.20;
+
+      toggleWizardEssayFields();
+      updateWizardStepUI();
+      showScreen('screenWizard');
+    }
+
+    function closeWizard() {
+      if (contestsList.length > 0) {
+        goToDashboard();
+      } else {
+        showScreen('screenWelcome');
+      }
+    }
+
+    function updateWizardStepUI() {
+      // Hide all steps panels
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById(`wizardStep-${i}`).classList.add('hidden');
+        document.getElementById(`stepCircle-${i}`).className = "w-8 h-8 rounded-full border-2 border-gray-700 flex items-center justify-center";
+        document.getElementById(`stepInd-${i}`).className = "flex flex-col items-center gap-1";
+      }
+
+      // Show active
+      document.getElementById(`wizardStep-${wizardCurrentStep}`).classList.remove('hidden');
+      document.getElementById(`stepCircle-${wizardCurrentStep}`).className = "w-8 h-8 rounded-full border-2 border-brandgreen flex items-center justify-center text-brandgreen";
+      document.getElementById(`stepInd-${wizardCurrentStep}`).className = "flex flex-col items-center gap-1 text-brandgreen font-bold";
+
+      // Lines
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById(`stepLine-${i}`).className = "flex-grow h-0.5 bg-gray-700 mx-2 mb-8";
+      }
+      for (let i = 1; i < wizardCurrentStep; i++) {
+        document.getElementById(`stepLine-${i}`).className = "flex-grow h-0.5 bg-brandgreen mx-2 mb-8";
+      }
+
+      // Buttons
+      document.getElementById('wizBackBtn').style.visibility = wizardCurrentStep === 1 ? 'hidden' : 'visible';
+      document.getElementById('wizNextBtn').textContent = wizardCurrentStep === 4 ? 'Salvar Concurso 💾' : 'Próximo ➡️';
+    }
+
+    function wizardNext() {
+      if (wizardCurrentStep === 1) {
+        if (!document.getElementById('wizContestName').value.trim()) {
+          showToast("Insira o nome do Concurso/Edital", "warning");
+          return;
+        }
+        wizardCurrentStep = 2;
+      } else if (wizardCurrentStep === 2) {
+        wizardCurrentStep = 3;
+      } else if (wizardCurrentStep === 3) {
+        if (wizSubjects.length === 0) {
+          showToast("Cadastre pelo menos uma Matéria e um Tópico para continuar", "warning");
+          return;
+        }
+        wizardCurrentStep = 4;
+      } else if (wizardCurrentStep === 4) {
+        saveCompleteWizardData();
+        return;
+      }
+      updateWizardStepUI();
+    }
+
+    function wizardPrev() {
+      if (wizardCurrentStep > 1) {
+        wizardCurrentStep--;
+        updateWizardStepUI();
+      }
+    }
+
+    function toggleWizStyleUI() {
+      const styles = document.getElementsByName('wizExamStyle');
+      let val = 'multipla_escolha';
+      for (let s of styles) {
+        if (s.checked) val = s.value;
+      }
+      if (val === 'multipla_escolha') {
+        document.getElementById('wizStyleLabel-multi').className = "border-2 border-brandpurple/50 bg-purple-950/20 hover:bg-purple-950/30 p-5 rounded-2xl cursor-pointer flex items-center gap-4 transition text-left";
+        document.getElementById('wizStyleLabel-ce').className = "border border-gray-700 bg-gray-900/50 hover:bg-gray-800/50 p-5 rounded-2xl cursor-pointer flex items-center gap-4 transition text-left";
+      } else {
+        document.getElementById('wizStyleLabel-multi').className = "border border-gray-700 bg-gray-900/50 hover:bg-gray-800/50 p-5 rounded-2xl cursor-pointer flex items-center gap-4 transition text-left";
+        document.getElementById('wizStyleLabel-ce').className = "border-2 border-brandpurple/50 bg-purple-950/20 hover:bg-purple-950/30 p-5 rounded-2xl cursor-pointer flex items-center gap-4 transition text-left";
+      }
+    }
+
+    function toggleWizardEssayFields() {
+      const checked = document.getElementById('wizEssayEnabled').checked;
+      const container = document.getElementById('wizEssayFieldsContainer');
+      if (checked) {
+        container.classList.remove('hidden');
+      } else {
+        container.classList.add('hidden');
+      }
+    }
+
+    function updateWizFormulaExplanation() {
+      const type = document.getElementById('wizEssayFormulaType').value;
+      const expField = document.getElementById('wizEssayFormulaExplanation');
+      const multField = document.getElementById('wizEssayMultiplier');
+      
+      if (type === 'cebraspe') {
+        expField.value = "NF = NC - (K * (NE / TLE))";
+        multField.value = "2.00";
+      } else if (type === 'fgv') {
+        expField.value = "NF = NC - sum(Penalidades)";
+        multField.value = "1.00";
+      } else if (type === 'fcc') {
+        expField.value = "NF = NC - sum(Penalidades)";
+        multField.value = "1.00";
+      } else {
+        expField.value = "NF = NC - (K * NE)";
+        multField.value = "1.00";
+      }
+    }
+
+    // Adiciona matéria na lista temporária do Wizard
+    function wizAddSubject() {
+      const field = document.getElementById('wizSubjectName');
+      const name = field.value.trim();
+      if (!name) return;
+
+      const tempId = "wiz-subj-" + Date.now();
+      wizSubjects.push({
+        tempId,
+        name,
+        topics: []
+      });
+      field.value = '';
+      renderWizardSubjects();
+    }
+
+    function wizDeleteSubject(tempId) {
+      wizSubjects = wizSubjects.filter(s => s.tempId !== tempId);
+      renderWizardSubjects();
+    }
+
+    function wizAddTopic(subjTempId) {
+      const inputTitle = document.getElementById(`wizInTopicTitle-${subjTempId}`);
+      const inputRec = document.getElementById(`wizInTopicRec-${subjTempId}`);
+      const inputNotes = document.getElementById(`wizInTopicNotes-${subjTempId}`);
+
+      const title = inputTitle.value.trim();
+      const recVal = parseFloat(inputRec.value) || 0.00;
+      const notes = inputNotes.value.trim();
+
+      if (!title) {
+        showToast("Insira o nome do tópico", "warning");
+        return;
+      }
+
+      const subj = wizSubjects.find(s => s.tempId === subjTempId);
+      if (subj) {
+        subj.topics.push({
+          tempId: "wiz-top-" + Date.now(),
+          title,
+          percentage: recVal,
+          notes
+        });
+        
+        // Clear
+        inputTitle.value = '';
+        inputRec.value = '0.00';
+        inputNotes.value = '';
+        renderWizardSubjects();
+      }
+    }
+
+    function wizDeleteTopic(subjTempId, topicTempId) {
+      const subj = wizSubjects.find(s => s.tempId === subjTempId);
+      if (subj) {
+        subj.topics = subj.topics.filter(t => t.tempId !== topicTempId);
+        renderWizardSubjects();
+      }
+    }
+
+    function renderWizardSubjects() {
+      const list = document.getElementById('wizSubjectsList');
+      list.innerHTML = '';
+
+      if (wizSubjects.length === 0) {
+        list.innerHTML = `<div class="text-center text-xs text-gray-500 py-6">Nenhuma matéria adicionada ainda.</div>`;
+        return;
+      }
+
+      wizSubjects.forEach(s => {
+        const item = document.createElement('div');
+        item.className = "bg-gray-900 border border-gray-700 rounded-xl p-4 flex flex-col gap-3";
+        
+        let topicsHTML = '';
+        s.topics.forEach(t => {
+          topicsHTML += `
+            <div class="flex items-center justify-between bg-gray-800 p-2.5 rounded-lg border border-gray-750 text-xs">
+              <div class="flex-grow">
+                <span class="font-bold text-white">${t.title}</span>
+                <span class="text-brandorange font-black ml-2">${t.percentage}% Recorrência</span>
+                ${t.notes ? `<p class="text-[10px] text-gray-400 mt-0.5">${t.notes}</p>` : ''}
+              </div>
+              <button onclick="wizDeleteTopic('${s.tempId}', '${t.tempId}')" class="text-red-400 hover:text-red-500 font-bold ml-2">✖️</button>
+            </div>
+          `;
+        });
+
+        item.innerHTML = `
+          <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+            <span class="font-display font-extrabold text-sm text-brandpurple">📁 Matéria: ${s.name}</span>
+            <button onclick="wizDeleteSubject('${s.tempId}')" class="text-red-400 hover:text-red-500 text-xs font-bold">Excluir Matéria</button>
+          </div>
+          
+          <!-- Lista de Tópicos existentes -->
+          <div class="flex flex-col gap-1.5">
+            ${topicsHTML || '<span class="text-[10px] text-gray-500 italic">Nenhum tópico adicionado nesta matéria.</span>'}
+          </div>
+
+          <!-- Add Topic inputs -->
+          <div class="bg-gray-950 p-3 rounded-lg border border-gray-850 flex flex-col gap-2.5 mt-2">
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Novo Tópico / Assunto do Edital</span>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+              <div class="md:col-span-2">
+                <input type="text" id="wizInTopicTitle-${s.tempId}" placeholder="Título do Assunto" class="w-full bg-gray-800 border border-gray-750 p-2 rounded text-xs text-white">
+              </div>
+              <div>
+                <input type="number" id="wizInTopicRec-${s.tempId}" placeholder="Recorrência %" value="0.00" step="0.01" max="100" class="w-full bg-gray-800 border border-gray-750 p-2 rounded text-xs text-white">
+              </div>
+              <button onclick="wizAddTopic('${s.tempId}')" class="bg-brandpurple hover:bg-purple-600 text-white font-bold text-xs py-2 rounded transition">
+                + Tópico
+              </button>
+            </div>
+            <input type="text" id="wizInTopicNotes-${s.tempId}" placeholder="Observações/Estatística da Banca (Opcional)" class="w-full bg-gray-800 border border-gray-750 p-2 rounded text-xs text-white">
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    // Salvar todo o Wizard no Banco
+    async function saveCompleteWizardData() {
+      try {
+        const name = document.getElementById('wizContestName').value.trim();
+        const board = document.getElementById('wizContestBoard').value;
+        const examStyles = document.getElementsByName('wizExamStyle');
+        let examStyle = 'multipla_escolha';
+        for (let s of examStyles) {
+          if (s.checked) examStyle = s.value;
+        }
+
+        showToast("Salvando dados do concurso...", "info");
+
+        // 1. Salvar Concurso
+        const contest = await db.saveContest(name, board, examStyle);
+
+        // 2. Salvar Matérias e Tópicos
+        for (let s of wizSubjects) {
+          const subject = await db.createSubject(contest.id, s.name);
+          for (let t of s.topics) {
+            const topic = await db.createTopic(subject.id, t.title);
+            if (t.percentage > 0 || t.notes) {
+              await db.saveTopicRecurrence(topic.id, t.percentage, t.notes);
+            }
+          }
+        }
+
+        // 3. Salvar Configuração de Redação se habilitada
+        const essayEnabled = document.getElementById('wizEssayEnabled').checked;
+        if (essayEnabled) {
+          const configData = {
+            guidelines: document.getElementById('wizEssayGuidelines').value,
+            essay_type: document.getElementById('wizEssayType').value,
+            max_lines: parseInt(document.getElementById('wizEssayMaxLines').value) || 30,
+            complementary_notes: document.getElementById('wizEssayNotes').value,
+            macro_score_max: parseFloat(document.getElementById('wizEssayMaxMacro').value) || 100.00,
+            structure_score_max: parseFloat(document.getElementById('wizEssayMaxStructure').value) || 30.00,
+            content_score_max: parseFloat(document.getElementById('wizEssayMaxContent').value) || 70.00,
+            formula_type: document.getElementById('wizEssayFormulaType').value,
+            formula_multiplier: parseFloat(document.getElementById('wizEssayMultiplier').value) || 2.00,
+            formula_explanation: document.getElementById('wizEssayFormulaExplanation').value,
+            error_deduction_rates: {
+              spelling_error_deduction: parseFloat(document.getElementById('wizDeductSpelling').value) || 0.20,
+              grammatical_error_deduction: parseFloat(document.getElementById('wizDeductGrammar').value) || 0.30,
+              syntax_error_deduction: parseFloat(document.getElementById('wizDeductSyntax').value) || 0.30,
+              vocabulary_error_deduction: parseFloat(document.getElementById('wizDeductVocabulary').value) || 0.20
+            }
+          };
+          await db.saveEssayConfig(contest.id, configData);
+        }
+
+        showToast("Concurso cadastrado com sucesso!", "success");
+        await syncData();
+        await selectContest(contest.id);
+        goToDashboard();
+      } catch (e) {
+        console.error(e);
+        showToast("Falha ao salvar concurso.", "error");
+      }
+    }
+
+    // ==========================================
+    // 5. SELEÇÃO DE CONCURSO E LISTAS
+    // ==========================================
+    function renderContestsList() {
+      const list = document.getElementById('contestListContainer');
+      list.innerHTML = '';
+
+      if (contestsList.length === 0) {
+        list.innerHTML = `<span class="text-xs text-gray-500 italic p-3 text-center">Nenhum concurso ativo.</span>`;
+        return;
+      }
+
+      contestsList.forEach(c => {
+        const item = document.createElement('div');
+        const isActive = activeContest && activeContest.id === c.id;
+        
+        item.className = `group flex items-center justify-between p-3 rounded-xl cursor-pointer transition duration-150 border text-left ${isActive ? 'bg-gray-850 border-brandgreen/50 text-white' : 'bg-gray-900/60 border-gray-800 text-gray-400 hover:bg-gray-800/40 hover:text-white'}`;
+        
+        item.innerHTML = `
+          <div onclick="selectContest('${c.id}')" class="flex-grow">
+            <span class="font-display font-bold text-xs uppercase text-brandorange">${c.board}</span>
+            <p class="font-bold text-sm tracking-tight truncate">${c.name}</p>
+          </div>
+          <button onclick="deleteContestConfirm('${c.id}')" class="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-500 text-xs font-bold p-1 ml-2 transition">
+            ✖️
+          </button>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    async function selectContest(contestId) {
+      activeContest = contestsList.find(c => c.id === contestId);
+      renderContestsList();
+      await loadDashboardData();
+      goToDashboard();
+    }
+
+    async function deleteContestConfirm(contestId) {
+      if (confirm("Tem certeza de que deseja excluir este concurso? Todos os dados associados, matérias, PDFs carregados, progresso de estudo e redações enviadas serão apagados definitivamente.")) {
+        try {
+          await db.deleteContest(contestId);
+          showToast("Concurso excluído com sucesso.", "success");
+          if (activeContest && activeContest.id === contestId) activeContest = null;
+          await syncData();
+        } catch (e) {
+          console.error(e);
+          showToast("Falha ao deletar edital.", "error");
+        }
+      }
+    }
+
+    // ==========================================
+    // 6. DASHBOARD PRINCIPAL & RENDER DE DADOS E GRÁFICOS
+    // ==========================================
+    async function loadDashboardData() {
+      if (!activeContest) return;
+
+      document.getElementById('dashContestName').textContent = activeContest.name;
+      document.getElementById('dashContestBoard').textContent = activeContest.board;
+      document.getElementById('dashContestStyle').textContent = activeContest.exam_style === 'multipla_escolha' ? 'Múltipla Escolha (A, B, C, D)' : 'Certo / Errado';
+
+      // 1. Renderizar Árvore de Matérias/Assuntos no Dashboard
+      const subjects = await db.getSubjects(activeContest.id);
+      document.getElementById('dashSubjectsCount').textContent = `${subjects.length} Matérias`;
+      
+      const listContainer = document.getElementById('dashMatériasContainer');
+      listContainer.innerHTML = '';
+
+      if (subjects.length === 0) {
+        listContainer.innerHTML = `
+          <div class="text-center text-xs text-gray-500 py-8 bg-gray-900/30 rounded-xl border border-gray-800">
+            Nenhuma matéria adicionada a este edital. Configure editando o concurso.
+          </div>
+        `;
+      }
+
+      let totalCorrectSum = 0;
+      let totalIncorrectSum = 0;
+      const progressList = await db.getUserProgress();
+
+      for (let s of subjects) {
+        const topics = await db.getTopics(s.id);
+        const item = document.createElement('div');
+        item.className = "bg-gray-900/40 p-4 rounded-xl border border-gray-800 flex flex-col gap-2.5 text-left";
+        
+        let topicsHTML = '';
+        for (let t of topics) {
+          const rec = await db.getTopicRecurrence(t.id);
+          const prog = progressList.find(p => p.topic_id === t.id);
+          const correct = prog?.correct_count || 0;
+          const incorrect = prog?.incorrect_count || 0;
+          
+          totalCorrectSum += correct;
+          totalIncorrectSum += incorrect;
+
+          const totalPlayed = correct + incorrect;
+          const accuracy = totalPlayed > 0 ? Math.round((correct / totalPlayed) * 100) : 0;
+          
+          topicsHTML += `
+            <div class="flex flex-wrap items-center justify-between gap-2 bg-gray-950/60 p-3 rounded-lg border border-gray-850 hover:border-gray-700 transition">
+              <div class="flex-grow">
+                <span class="text-xs font-bold text-white block">${t.title}</span>
+                <div class="flex items-center gap-2 mt-1">
+                  ${rec ? `<span class="text-[9px] bg-orange-950 text-brandorange font-black px-1.5 py-0.5 rounded border border-brandorange/30">Recorrência: ${rec.recurrence_percentage}%</span>` : ''}
+                  <span class="text-[9px] text-gray-500">Respondidas: ${totalPlayed}</span>
+                </div>
+              </div>
+              
+              <!-- Mini progresso -->
+              <div class="flex items-center gap-3 shrink-0">
+                <div class="text-right">
+                  <span class="text-xs font-bold ${accuracy >= 70 ? 'text-brandgreen' : totalPlayed > 0 ? 'text-brandorange' : 'text-gray-500'}">${totalPlayed > 0 ? `${accuracy}% Acertos` : 'Não Estudado'}</span>
+                  <div class="text-[10px] text-gray-500">C: ${correct} | E: ${incorrect}</div>
+                </div>
+                <button onclick="selectTopicForStudy('${s.id}', '${t.id}')" class="bg-gray-800 hover:bg-brandpurple text-white hover:text-white border border-gray-700 text-xs font-bold py-1 px-3 rounded transition">
+                  Estudar 📖
+                </button>
+              </div>
+            </div>
+          `;
+        }
+
+        item.innerHTML = `
+          <h4 class="font-display font-black text-sm text-brandpurple border-b border-gray-800 pb-1.5">📁 ${s.name}</h4>
+          <div class="flex flex-col gap-2 mt-1">
+            ${topicsHTML || '<span class="text-xs text-gray-500 italic">Nenhum assunto sob esta matéria.</span>'}
+          </div>
+        `;
+        listContainer.appendChild(item);
+      }
+
+      document.getElementById('dashTotalCorrect').textContent = totalCorrectSum;
+      document.getElementById('dashTotalIncorrect').textContent = totalIncorrectSum;
+
+      // 2. Renderizar os Gráficos (Chart.js)
+      renderDashboardCharts(totalCorrectSum, totalIncorrectSum);
+    }
+
+    // Renderiza e atualiza gráficos
+    async function renderDashboardCharts(correct, incorrect) {
+      // A. Gráfico de Questões (Pizza / Rosca)
+      const ctxQ = document.getElementById('questionsStatsChart').getContext('2d');
+      if (questionsChartInstance) questionsChartInstance.destroy();
+      
+      const noData = correct === 0 && incorrect === 0;
+      
+      questionsChartInstance = new Chart(ctxQ, {
+        type: 'doughnut',
+        data: {
+          labels: noData ? ['Sem dados'] : ['Acertos', 'Erros'],
+          datasets: [{
+            data: noData ? [1] : [correct, incorrect],
+            backgroundColor: noData ? ['#4a5568'] : ['#2ecc71', '#e53e3e'],
+            borderWidth: 2,
+            borderColor: '#2d3748'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { color: '#cbd5e0', font: { family: 'Inter', size: 11 } }
+            }
+          },
+          cutout: '65%'
+        }
+      });
+
+      // B. Gráfico de Evolução de Redações (Linha)
+      const ctxE = document.getElementById('essayScoresChart').getContext('2d');
+      if (essayChartInstance) essayChartInstance.destroy();
+
+      const essays = await db.getUserEssays(activeContest.id);
+      
+      const labels = essays.map((e, idx) => `Envio ${idx + 1}`);
+      const scores = essays.map(e => e.score);
+
+      const hasEssays = essays.length > 0;
+
+      essayChartInstance = new Chart(ctxE, {
+        type: 'line',
+        data: {
+          labels: hasEssays ? labels : ['Sem dados'],
+          datasets: [{
+            label: 'Nota da Redação',
+            data: hasEssays ? scores : [0],
+            borderColor: '#9b59b6',
+            backgroundColor: 'rgba(155, 89, 182, 0.1)',
+            fill: true,
+            tension: 0.3,
+            borderWidth: 3,
+            pointBackgroundColor: '#2ecc71',
+            pointRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              min: 0,
+              max: 100,
+              ticks: { color: '#a0aec0' },
+              grid: { color: 'rgba(74, 85, 104, 0.2)' }
+            },
+            x: {
+              ticks: { color: '#a0aec0' },
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    function goToDashboard() {
+      showScreen('screenDashboard');
+    }
+
+    // ==========================================
+    // 7. HUB DE ESTUDOS / ESTAÇÃO DE TRABALHO
+    // ==========================================
+    async function goToStudyHub() {
+      if (!activeContest) return;
+      await renderStudyAccordion();
+      
+      // Select first subject/topic if none active
+      if (activeTopic) {
+        await selectTopicForStudy(activeSubject.id, activeTopic.id);
+      } else {
+        document.getElementById('topicWorkspaceActive').classList.add('hidden');
+        document.getElementById('topicWorkspacePlaceholder').classList.remove('hidden');
+      }
+
+      showScreen('screenStudyHub');
+    }
+
+    async function renderStudyAccordion() {
+      const container = document.getElementById('studyAccordionContainer');
+      container.innerHTML = '';
+
+      const subjects = await db.getSubjects(activeContest.id);
+      if (subjects.length === 0) {
+        container.innerHTML = `<span class="text-xs text-gray-500 italic text-center py-4">Nenhuma matéria criada.</span>`;
+        return;
+      }
+
+      for (let s of subjects) {
+        const topics = await db.getTopics(s.id);
+        const subjDiv = document.createElement('div');
+        subjDiv.className = "flex flex-col gap-1";
+        
+        let topicsHTML = '';
+        topics.forEach(t => {
+          const isSelected = activeTopic && activeTopic.id === t.id;
+          topicsHTML += `
+            <button onclick="selectTopicForStudy('${s.id}', '${t.id}')" class="w-full text-left py-2 px-3 rounded-lg text-xs transition border flex items-center justify-between ${isSelected ? 'bg-brandpurple border-brandpurple text-white font-bold' : 'bg-gray-900/60 border-gray-800 text-gray-400 hover:bg-gray-850 hover:text-white' }">
+              <span class="truncate pr-1">📖 ${t.title}</span>
+              <span class="shrink-0 text-[9px] bg-gray-850 text-brandorange font-black px-1.5 py-0.2 rounded border border-gray-700/60 font-mono">X-Ray</span>
+            </button>
+          `;
+        });
+
+        subjDiv.innerHTML = `
+          <span class="text-xs font-bold text-gray-300 uppercase tracking-wide px-1 py-1 block">📁 ${s.name}</span>
+          <div class="flex flex-col gap-1 pl-2.5">
+            ${topicsHTML || '<span class="text-[10px] text-gray-600 italic pl-3">Sem assuntos.</span>'}
+          </div>
+        `;
+        container.appendChild(subjDiv);
+      }
+    }
+
+    async function selectTopicForStudy(subjectId, topicId) {
+      const subjects = await db.getSubjects(activeContest.id);
+      activeSubject = subjects.find(s => s.id === subjectId);
+      
+      const topics = await db.getTopics(subjectId);
+      activeTopic = topics.find(t => t.id === topicId);
+
+      // Carregar X-Ray stats
+      activeTopicStats = await db.getTopicRecurrence(topicId);
+
+      // UI update
+      document.getElementById('topicWorkspacePlaceholder').classList.add('hidden');
+      document.getElementById('topicWorkspaceActive').classList.remove('hidden');
+
+      document.getElementById('topicActiveSubject').textContent = activeSubject.name;
+      document.getElementById('topicActiveTitle').textContent = activeTopic.title;
+      
+      if (activeTopicStats) {
+        document.getElementById('topicActiveRecPercentage').textContent = `${activeTopicStats.recurrence_percentage}%`;
+        document.getElementById('topicActiveNotes').textContent = activeTopicStats.notes || 'Sem observações adicionais.';
+      } else {
+        document.getElementById('topicActiveRecPercentage').textContent = '0.00%';
+        document.getElementById('topicActiveNotes').textContent = 'Recorrência estatística não cadastrada.';
+      }
+
+      // Teoria Content
+      document.getElementById('theoryContentField').value = activeTopic.theory_content || '';
+
+      // Materials list
+      await renderStudyMaterialsList();
+
+      // Reset IA outputs
+      document.getElementById('questionsContainer').innerHTML = '';
+      document.getElementById('activeThemeContainer').classList.add('hidden');
+      document.getElementById('essayEspelhoContainer').classList.add('hidden');
+      document.getElementById('verEspelhoRedacaoBtn').classList.add('hidden');
+      document.getElementById('essayEditor').value = '';
+      document.getElementById('essayCorrectionResults').classList.add('hidden');
+      document.getElementById('essayLinesCounter').textContent = `0 / ${await getEssayLinesLimit()} linhas`;
+      document.getElementById('essayLinesLimitLabel').textContent = await getEssayLinesLimit();
+
+      // Render line numbers based on limit
+      await renderEssayLineNumbers();
+
+      // Update active state in tree accordion
+      await renderStudyAccordion();
+
+      // Switch tab to theory initially
+      switchWorkspaceTab('theory');
+
+      // Se houver um concurso com redação desabilitada, esconde ou avisa
+      const config = await db.getEssayConfig(activeContest.id);
+      if (config) {
+        document.getElementById('essayConfigWarning').classList.add('hidden');
+        document.getElementById('essayActiveWorkspace').classList.remove('hidden');
+      } else {
+        document.getElementById('essayConfigWarning').classList.remove('hidden');
+        document.getElementById('essayActiveWorkspace').classList.add('hidden');
+      }
+    }
+
+    async function getEssayLinesLimit() {
+      if (!activeContest) return 30;
+      const config = await db.getEssayConfig(activeContest.id);
+      return config ? config.max_lines : 30;
+    }
+
+    async function renderEssayLineNumbers() {
+      const maxLines = await getEssayLinesLimit();
+      const gutter = document.getElementById('essayLineGutters');
+      gutter.innerHTML = '';
+      
+      // Calculate height dynamically
+      for(let i = 1; i <= maxLines; i++) {
+        const span = document.createElement('div');
+        span.className = "h-[30px] flex items-center justify-end font-mono";
+        span.textContent = i;
+        gutter.appendChild(span);
+      }
+    }
+
+    function updateLineCount() {
+      const textarea = document.getElementById('essayEditor');
+      const lines = textarea.value.split('\n');
+      const linesLimit = parseInt(document.getElementById('essayLinesLimitLabel').textContent) || 30;
+      
+      // Limit to max lines
+      if (lines.length > linesLimit) {
+        textarea.value = lines.slice(0, linesLimit).join('\n');
+        showToast(`Limite máximo de ${linesLimit} linhas atingido!`, "warning");
+      }
+      
+      const currentLines = textarea.value.split('\n').filter(l => l.trim() !== '').length;
+      document.getElementById('essayLinesCounter').textContent = `${currentLines} / ${linesLimit} linhas efetivas`;
+    }
+
+    function switchWorkspaceTab(tab) {
+      activeWorkspaceTab = tab;
+      
+      // Tab style
+      document.querySelectorAll('.workspace-tab-btn').forEach(b => {
+        b.className = "workspace-tab-btn font-display font-semibold text-sm px-4 py-2.5 rounded-t-xl transition duration-150 border-t border-x border-transparent text-gray-400 hover:text-white bg-transparent";
+      });
+
+      const activeBtn = document.getElementById(`tabBtn-${tab}`);
+      if (activeBtn) {
+        activeBtn.className = "workspace-tab-btn font-display font-semibold text-sm px-4 py-2.5 rounded-t-xl transition duration-150 border-t border-x border-gray-700 bg-gray-800/40 text-brandgreen font-black";
+      }
+
+      // Panel switch
+      document.querySelectorAll('.workspace-tab-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById(`tabPanel-${tab}`).classList.remove('hidden');
+    }
+
+    async function saveActiveTheory() {
+      if (!activeTopic) return;
+      const text = document.getElementById('theoryContentField').value;
+      try {
+        await db.updateTopicTheory(activeTopic.id, text);
+        activeTopic.theory_content = text;
+        showToast("Teoria salva com sucesso!", "success");
+      } catch (e) {
+        console.error(e);
+        showToast("Falha ao salvar a teoria.", "error");
+      }
+    }
+
+    // ==========================================
+    // 8. MATERIAL DE APOIO CUMULATIVO E PARSER PDF
+    // ==========================================
+    async function renderStudyMaterialsList() {
+      const container = document.getElementById('studyMaterialsContainer');
+      container.innerHTML = '';
+
+      const list = await db.getStudyMaterials(activeTopic.id);
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center text-[10px] text-gray-500 py-6 bg-gray-900/20 rounded-xl border border-dashed border-gray-800">
+            Nenhum material de apoio anexado a este assunto.
+          </div>
+        `;
+        return;
+      }
+
+      list.forEach(m => {
+        const card = document.createElement('div');
+        card.className = "bg-gray-900 border border-gray-800 p-3 rounded-lg flex items-center justify-between text-xs";
+        
+        let typeEmoji = '📄';
+        if (m.material_type === 'web_link') typeEmoji = '🔗';
+        else if (m.material_type === 'youtube_link') typeEmoji = '📺';
+
+        card.innerHTML = `
+          <div class="truncate pr-2">
+            <span class="mr-1.5">${typeEmoji}</span>
+            <span class="font-bold text-white">${m.display_name}</span>
+            <p class="text-[10px] text-gray-500 truncate">${m.content_data.substring(0, 50)}...</p>
+          </div>
+          <button onclick="deleteMaterial('${m.id}')" class="text-red-400 hover:text-red-500 text-[10px] font-bold shrink-0 ml-2">Excluir</button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function deleteMaterial(id) {
+      if (confirm("Deseja mesmo remover este material de apoio?")) {
+        try {
+          await db.deleteStudyMaterial(id);
+          showToast("Material removido.", "success");
+          await renderStudyMaterialsList();
+        } catch (e) {
+          console.error(e);
+          showToast("Erro ao deletar material.", "error");
+        }
+      }
+    }
+
+    function switchUploadTab(tab) {
+      document.querySelectorAll('.upload-tab-btn').forEach(b => {
+        b.className = "upload-tab-btn px-3 py-1.5 rounded-lg font-semibold bg-transparent text-gray-400";
+      });
+      document.getElementById(`uploadTabBtn-${tab}`).className = "upload-tab-btn px-3 py-1.5 rounded-lg font-semibold bg-gray-800 text-white";
+
+      document.querySelectorAll('.upload-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById(`uploadPanel-${tab}`).classList.remove('hidden');
+    }
+
+    // PDF selection and client extraction
+    function handlePDFSelection() {
+      const fileInput = document.getElementById('pdfFileInput');
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      document.getElementById('pdfFileNameDisplay').textContent = file.name;
+      const progressContainer = document.getElementById('pdfProgressContainer');
+      const statusMsg = document.getElementById('pdfStatusMsg');
+      progressContainer.classList.remove('hidden');
+      statusMsg.textContent = "Lendo arquivo PDF...";
+
+      const reader = new FileReader();
+      reader.onload = async function() {
+        const typedArray = new Uint8Array(this.result);
+        try {
+          statusMsg.textContent = "Extraindo texto via PDF.js...";
+          const text = await extractTextFromPDF(typedArray);
+          
+          if (!text.trim()) {
+            throw new Error("Não foi possível extrair nenhum texto legível deste PDF.");
+          }
+
+          statusMsg.textContent = "Salvando material...";
+          await db.addStudyMaterial(activeTopic.id, 'pdf_text', text, file.name);
+          
+          showToast("PDF processado e anexado com sucesso!", "success");
+          progressContainer.classList.add('hidden');
+          fileInput.value = '';
+          document.getElementById('pdfFileNameDisplay').textContent = "Clique ou arraste outro PDF para extrair";
+          await renderStudyMaterialsList();
+        } catch (err) {
+          console.error(err);
+          showToast(err.message || "Erro no processamento do PDF.", "error");
+          progressContainer.classList.add('hidden');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // PDF Text Extraction Logic via PDF.js CDN
+    async function extractTextFromPDF(uint8Array) {
+      // PDF.js settings
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+      
+      const loadingTask = pdfjsLib.getDocument({ data: uint8Array });
+      const pdf = await loadingTask.promise;
+      let fullText = '';
+      
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(' ');
+        fullText += pageText + '\n';
+      }
+      return fullText;
+    }
+
+    async function addTextMaterial() {
+      const nameField = document.getElementById('textMaterialName');
+      const contentField = document.getElementById('textMaterialContent');
+      
+      const name = nameField.value.trim();
+      const content = contentField.value.trim();
+
+      if (!name || !content) {
+        showToast("Insira o nome e o texto do material", "warning");
+        return;
+      }
+
+      try {
+        await db.addStudyMaterial(activeTopic.id, 'pdf_text', content, name);
+        showToast("Texto adicionado com sucesso!", "success");
+        nameField.value = '';
+        contentField.value = '';
+        await renderStudyMaterialsList();
+      } catch (e) {
+        console.error(e);
+        showToast("Falha ao salvar material.", "error");
+      }
+    }
+
+    async function addURLMaterial() {
+      const nameField = document.getElementById('urlMaterialName');
+      const typeField = document.getElementById('urlMaterialType');
+      const urlField = document.getElementById('urlMaterialData');
+
+      const name = nameField.value.trim();
+      const type = typeField.value;
+      const url = urlField.value.trim();
+
+      if (!name || !url) {
+        showToast("Insira o nome e a URL correspondente", "warning");
+        return;
+      }
+
+      try {
+        await db.addStudyMaterial(activeTopic.id, type, url, name);
+        showToast("Link salvo com sucesso!", "success");
+        nameField.value = '';
+        urlField.value = '';
+        await renderStudyMaterialsList();
+      } catch (e) {
+        console.error(e);
+        showToast("Falha ao salvar link.", "error");
+      }
+    }
+
+    // ==========================================
+    // 9. PROMPT ENGINEERING & CONEXÃO COM GEMINI API
+    // ==========================================
+    
+    // Auxiliar: Limpa e realiza parse do JSON da IA removendo markdown blocks
+    function cleanAndParseJSON(rawText) {
+      let cleaned = rawText.trim();
+      if (cleaned.startsWith("```")) {
+        cleaned = cleaned.replace(/^```(json)?/, "").replace(/```$/, "").trim();
+      }
+      return JSON.parse(cleaned);
+    }
+
+    // Função central que faz a chamada para a Serverless Function local (/api/gemini)
+    async function queryGeminiAPI(systemPrompt, userPrompt) {
+      // Faz a requisição POST para o proxy serverless (/api/gemini)
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          systemPrompt,
+          userPrompt,
+          model: 'gemini-2.5-flash'
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Erro do Servidor de IA: ${response.statusText}`);
+      }
+
+      const text = await response.text();
+      return cleanAndParseJSON(text);
+    }
+
+    // Agrupa todos os textos dos materiais de apoio para alimentar o contexto cumulativo
+    async function getCumulativeContext() {
+      let texts = '';
+      
+      // Teoria padrão
+      if (activeTopic.theory_content) {
+        texts += `Teoria Principal do Assunto:\n${activeTopic.theory_content}\n\n`;
+      }
+      
+      // Materiais acumulados
+      const list = await db.getStudyMaterials(activeTopic.id);
+      const textMaterials = list.filter(m => m.material_type === 'pdf_text');
+      
+      textMaterials.forEach((m, idx) => {
+        texts += `Material de Contexto ${idx + 1} (${m.display_name}):\n${m.content_data}\n\n`;
+      });
+
+      return texts.trim() || "Nenhum material de apoio detalhado foi cadastrado para este tópico.";
+    }
+
+    // ==========================================
+    // 9.A: PROMPT A - GERAR 5 QUESTÕES
+    // ==========================================
+    async function generateQuestions(forceWeakRecovery = false, recoveryTopics = []) {
+      const container = document.getElementById('questionsContainer');
+      const loading = document.getElementById('questionsLoading');
+      
+      container.innerHTML = '';
+      loading.classList.remove('hidden');
+      
+      let targetTopic = activeTopic;
+      let targetSubject = activeSubject;
+      let targetStats = activeTopicStats;
+
+      // Se for Simulado de Recuperação
+      if (forceWeakRecovery && recoveryTopics.length > 0) {
+        // Seleciona um dos tópicos fracos de forma aleatória para focar o simulado
+        const randTopicData = recoveryTopics[Math.floor(Math.random() * recoveryTopics.length)];
+        targetTopic = randTopicData.topic;
+        targetSubject = randTopicData.subject;
+        targetStats = randTopicData.stats;
+      }
+
+      const board = activeContest.board;
+      const name_do_concurso = activeContest.name;
+      const nome_do_topico = targetTopic.title;
+      const recorrencia_percentual = targetStats ? targetStats.recurrence_percentage : 0.00;
+      const estilo_questoes = activeContest.exam_style === 'multipla_escolha' ? 'Múltipla Escolha' : 'Certo / Errado';
+      
+      let textos_dos_materiais_de_apoio = "";
+      if (forceWeakRecovery) {
+        // Load target topic theory
+        textos_dos_materiais_de_apoio = targetTopic.theory_content || "Teoria básica do edital.";
+      } else {
+        textos_dos_materials_de_apoio = await getCumulativeContext();
+      }
+
+      const systemPrompt = `Você é um membro sênior da banca organizadora do concurso ${board}. Sua especialidade é criar provas para carreiras de nível superior de ${name_do_concurso}.
+Seu estilo de cobrança segue estritamente o perfil histórico da banca ${board}.
+Considere que o tópico "${nome_do_topico}" possui um peso de relevância/recorrência em prova de ${recorrencia_percentual}%. Adapte o nível de cobrança e detalhamento técnico a esse peso (quanto maior a recorrência, mais minuciosa deve ser a cobrança de conceitos e jurisprudências associadas).
+${forceWeakRecovery ? "IMPORTANTE: Trata-se de uma questão de RECUPERAÇÃO ativa. Crie itens de nível DESAFIO para testar a fundo o conhecimento do aluno." : ""}
+
+Contexto de Apoio acumulado pelo aluno:
+"""
+${textos_dos_materials_de_apoio}
+"""
+
+Gere exatamente 5 questões de estilo ${estilo_questoes} baseadas no material e alinhadas ao comportamento histórico da banca ${board}.
+
+Formato da saída esperado (JSON estrito):
+[
+  {
+    "questao": "Texto da questão...",
+    "alternativas": {
+      "a": "Alternativa A",
+      "b": "Alternativa B",
+      "c": "Alternativa C",
+      "d": "Alternativa D"
+    },
+    "respostaCorreta": "letra_da_resposta_em_minusculo_ou_certo_errado",
+    "justificativa": "Explicação detalhada contendo 'Resposta Correta: X' e abaixo 'Justificativa: ...'"
+  }
+]`;
+
+      const userPrompt = `Gere 5 questões sobre "${nome_do_topico}" seguindo as diretrizes descritas e o estilo ${estilo_questoes}.`;
+
+      try {
+        let jsonResponse;
+        const apiKey = localStorage.getItem('edutech_gemini_key');
+        
+        if (apiKey) {
+          jsonResponse = await queryGeminiAPI(systemPrompt, userPrompt);
+        } else {
+          // Fallback para Mock local
+          await new Promise(r => setTimeout(r, 2000)); // Simula delay
+          jsonResponse = getMockQuestions(nome_do_topico, activeContest.exam_style);
+          showToast("Rodando em Modo Simulação de IA. Adicione sua chave de API nas configurações.", "info");
+        }
+
+        loading.classList.add('hidden');
+        renderQuestions(jsonResponse, targetTopic.id);
+      } catch (err) {
+        console.error(err);
+        loading.classList.add('hidden');
+        showToast("Falha ao gerar questões com a IA: " + err.message, "error");
+      }
+    }
+
+    function getMockQuestions(topicTitle, examStyle) {
+      if (examStyle === 'multipla_escolha') {
+        return [
+          {
+            questao: `Em relação ao assunto "${topicTitle}", qual das seguintes alternativas descreve corretamente um princípio fundamental associado à sua aplicabilidade prática em órgãos públicos?`,
+            alternativas: {
+              a: "É um modelo puramente teórico sem aplicabilidade na administração pública.",
+              b: "Garante eficiência, padronização e integridade dos processos técnicos operacionais.",
+              c: "Impede o uso de soluções modernas devido a entraves legislativos rígidos.",
+              d: "É voltado apenas para o desenvolvimento de software proprietário de grande porte."
+            },
+            respostaCorreta: "b",
+            justificativa: "Resposta Correta: b\nJustificativa: A implementação de processos alinhados ao tópico garante padronização, auditoria e total eficiência na esteira de serviços do órgão."
+          },
+          {
+            questao: `Considerando o tema "${topicTitle}", a banca aponta que o principal fator limitador de sua adoção inicial em tribunais de justiça é:`,
+            alternativas: {
+              a: "A barreira de cultura organizacional e a necessidade de treinamento técnico das equipes.",
+              b: "A proibição expressa pelo Conselho Nacional de Justiça (CNJ).",
+              c: "A incompatibilidade com sistemas operacionais baseados em Linux e Unix.",
+              d: "O custo proibitivo de ferramentas abertas (open-source)."
+            },
+            respostaCorreta: "a",
+            justificativa: "Resposta Correta: a\nJustificativa: Mudar processos operacionais exige a quebra de paradigmas culturais e investimento na capacitação das equipes."
+          },
+          {
+            questao: `No contexto de "${topicTitle}", assinale a alternativa que apresenta uma vantagem imediata relacionada à segurança dos dados processuais:`,
+            alternativas: {
+              a: "Eliminação total de backups físicos e lógicos redundantes.",
+              b: "Acesso irrestrito a qualquer cidadão, sem necessidade de autenticação forte.",
+              c: "Implementação de restrições de granularidade e trilhas completas de auditoria.",
+              d: "Descriptografia automática de todos os dados do banco de dados operacional."
+            },
+            respostaCorreta: "c",
+            justificativa: "Resposta Correta: c\nJustificativa: A granularidade fina e as trilhas de auditoria registram cada ação, aumentando o nível de cibersegurança do Tribunal."
+          },
+          {
+            questao: `Ao analisar a maturidade técnica de um sistema governamental sob o prisma de "${topicTitle}", deve-se priorizar:`,
+            alternativas: {
+              a: "O acoplamento rígido entre os módulos legados do sistema central.",
+              b: "A automação de testes unitários e a documentação clara dos diagramas de arquitetura.",
+              c: "A substituição total de hardware anualmente.",
+              d: "A utilização de senhas compartilhadas para facilitar o suporte."
+            },
+            respostaCorreta: "b",
+            justificativa: "Resposta Correta: b\nJustificativa: Testes unitários frequentes e arquitetura bem documentada reduzem a ocorrência de bugs em produção."
+          },
+          {
+            questao: `Qual a principal recomendação da banca examinadora para alinhar as práticas de "${topicTitle}" com as diretrizes da LGPD?`,
+            alternativas: {
+              a: "Anonimização de dados pessoais não estritamente necessários ao processo judicial.",
+              b: "Exclusão permanente de todos os processos arquivados do banco de dados.",
+              c: "Armazenar credenciais de usuários em texto limpo para fins de auditoria direta.",
+              d: "Utilizar apenas servidores locais sem possibilidade de replicação geográfica."
+            },
+            respostaCorreta: "a",
+            justificativa: "Resposta Correta: a\nJustificativa: A LGPD preconiza a minimização e a anonimização de dados confidenciais para mitigar riscos de vazamento."
+          }
+        ];
+      } else {
+        // Certo / Errado
+        return [
+          {
+            questao: `Sob a ótica de "${topicTitle}", julgue o item a seguir: A implantação dessas diretrizes no Tribunal exige a conformidade irrestrita com a LGPD, o que obriga a anonimização total dos nomes de réus e autores em todos os editais de intimação pública.`,
+            alternativas: {
+              certo: "Certo",
+              errado: "Errado"
+            },
+            respostaCorreta: "errado",
+            justificativa: "Resposta Correta: Errado\nJustificativa: A publicidade dos atos processuais é um preceito constitucional. O sigilo e a anonimização são exceções legais e não regra irrestrita para intimações públicas."
+          },
+          {
+            questao: `Julgue o item: No desenvolvimento de software governamental estruturado sob o conceito de "${topicTitle}", a automação do fluxo de integração e entrega contínua (CI/CD) é recomendável, mas não obrigatória para garantir a integridade dos artefatos.`,
+            alternativas: {
+              certo: "Certo",
+              errado: "Errado"
+            },
+            respostaCorreta: "certo",
+            justificativa: "Resposta Correta: Certo\nJustificativa: Pipelines automatizados reduzem erros humanos e aceleram as entregas, contudo a integridade dos artefatos também pode ser garantida por revisões e auditorias manuais rigorosas."
+          },
+          {
+            questao: `Julgue o item: A adoção de criptografia assimétrica baseada em chaves públicas para proteger a comunicação interna do Tribunal elimina a necessidade de firewalls no perímetro da rede corporativa.`,
+            alternativas: {
+              certo: "Certo",
+              errado: "Errado"
+            },
+            respostaCorreta: "errado",
+            justificativa: "Resposta Correta: Errado\nJustificativa: A criptografia protege a confidencialidade e autenticidade dos dados, mas não substitui a filtragem de pacotes e a proteção de rede realizadas por firewalls."
+          },
+          {
+            questao: `Julgue o item: O alinhamento das estatísticas da banca indica que o assunto "${topicTitle}" prioriza a celeridade processual sobre o controle de segurança em transações de dados sigilosos.`,
+            alternativas: {
+              certo: "Certo",
+              errado: "Errado"
+            },
+            respostaCorreta: "errado",
+            justificativa: "Resposta Correta: Errado\nJustificativa: A segurança dos dados confidenciais e a conformidade legal são preceitos absolutos. A celeridade processual não pode comprometer a proteção da informação."
+          },
+          {
+            questao: `Julgue o item: A modelagem de processos BPMN contribui para identificar redundâncias no fluxo judicial, facilitando a automação e aumentando a transparência dos trâmites perante a sociedade.`,
+            alternativas: {
+              certo: "Certo",
+              errado: "Errado"
+            },
+            respostaCorreta: "certo",
+            justificativa: "Resposta Correta: Certo\nJustificativa: Mapear os fluxos em BPMN expõe gargalos e caminhos redundantes, permitindo a otimização dos trâmites cartorários."
+          }
+        ];
+      }
+    }
+
+    function renderQuestions(questions, topicId) {
+      const container = document.getElementById('questionsContainer');
+      container.innerHTML = '';
+
+      questions.forEach((q, qIdx) => {
+        const card = document.createElement('div');
+        card.className = "bg-gray-900/50 p-5 rounded-xl border border-gray-700 flex flex-col gap-4 text-left shadow-sm";
+        
+        let alternativesHTML = '';
+        for (let key in q.alternativas) {
+          alternativesHTML += `
+            <button onclick="checkQuestionAnswer(this, '${key}', '${q.respostaCorreta}', '${topicId}', ${qIdx})" class="w-full text-left p-3.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-gray-200 border border-gray-750 transition flex items-center gap-2">
+              <span class="bg-gray-950/80 w-5 h-5 rounded-full flex items-center justify-center font-bold text-brandpurple text-[10px] shrink-0 uppercase">${key}</span>
+              <span>${q.alternativas[key]}</span>
+            </button>
+          `;
+        }
+
+        card.innerHTML = `
+          <div class="flex items-start gap-2.5">
+            <span class="bg-brandpurple text-white text-xs font-black w-6 h-6 rounded-full flex items-center justify-center shrink-0">0${qIdx + 1}</span>
+            <p class="text-sm font-semibold text-gray-150 leading-relaxed">${q.questao}</p>
+          </div>
+          
+          <div class="flex flex-col gap-2 mt-1" id="optsGroup-${qIdx}">
+            ${alternativesHTML}
+          </div>
+
+          <!-- Justification -->
+          <div id="justif-${qIdx}" class="hidden bg-gray-950 p-4 rounded-lg border border-gray-850 text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">
+            <!-- Populated on click -->
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function checkQuestionAnswer(btn, selected, correct, topicId, qIdx) {
+      const parent = document.getElementById(`optsGroup-${qIdx}`);
+      const buttons = parent.querySelectorAll('button');
+      
+      // Lock options
+      buttons.forEach(b => b.disabled = true);
+
+      // Colors
+      const isCorrect = selected.toLowerCase() === correct.toLowerCase();
+      
+      if (isCorrect) {
+        btn.classList.add('bg-emerald-950/80', 'border-brandgreen', 'text-brandgreen');
+        showToast("Resposta correta! +10 pts", "success");
+        const newScore = await db.updateProfileScore(10);
+        document.getElementById('headerPlayerScore').textContent = newScore;
+      } else {
+        btn.classList.add('bg-red-950/80', 'border-red-500', 'text-red-400');
+        showToast("Resposta incorreta.", "error");
+        
+        // Highlight correct button
+        buttons.forEach(b => {
+          const letter = b.querySelector('span').textContent.toLowerCase();
+          if (letter === correct.toLowerCase()) {
+            b.classList.add('bg-emerald-950/40', 'border-emerald-600/40', 'text-emerald-300');
+          }
+        });
+      }
+
+      // Record progress in DB
+      await db.recordQuestionAnswer(topicId, isCorrect);
+
+      // Exibir justificativa
+      const justif = document.getElementById(`justif-${qIdx}`);
+      justif.innerHTML = `
+        <p class="font-bold mb-1 ${isCorrect ? 'text-brandgreen' : 'text-red-400'}">${isCorrect ? '✓ Acertou!' : '✗ Errou.'}</p>
+        <p class="text-gray-400 font-bold uppercase tracking-wider text-[9px] mb-1">Justificativa Padrão da Banca:</p>
+        <p>Resposta Correta: ${correct.toUpperCase()}</p>
+        <p class="mt-1">${isCorrect ? 'Excelente análise.' : 'Estude a justificativa da banca examinadora abaixo.'}</p>
+        <div class="border-t border-gray-800 pt-2 mt-2 text-gray-300">${isCorrect ? 'Parabéns!' : 'Revisão: '} ...</div>
+      `;
+      
+      // Obter justificativa real das questões
+      if (window.activeQuestionsCache && window.activeQuestionsCache[qIdx]) {
+        justif.innerHTML = `
+          <p class="font-bold mb-1.5 ${isCorrect ? 'text-brandgreen font-extrabold' : 'text-red-400'}">${isCorrect ? '✓ Resposta Correta' : '✗ Resposta Incorreta'}</p>
+          <div class="text-gray-300 font-sans text-xs">${window.activeQuestionsCache[qIdx].justificativa}</div>
+        `;
+      }
+      
+      justif.classList.remove('hidden');
+    }
+
+    // Intercepta a renderização para salvar o cache das justificativas
+    const originalRenderQuestions = renderQuestions;
+    renderQuestions = function(questions, topicId) {
+      window.activeQuestionsCache = questions;
+      originalRenderQuestions(questions, topicId);
+    };
+
+    // ==========================================
+    // 9.B: PROMPT B - GERAR TEMA DE REDAÇÃO
+    // ==========================================
+    async function generateEssayTheme() {
+      const loading = document.getElementById('essayThemeLoading');
+      const themeContainer = document.getElementById('activeThemeContainer');
+      const espelhoBtn = document.getElementById('verEspelhoRedacaoBtn');
+      const espelhoContainer = document.getElementById('essayEspelhoContainer');
+      
+      themeContainer.classList.add('hidden');
+      espelhoBtn.classList.add('hidden');
+      espelhoContainer.classList.add('hidden');
+      loading.classList.remove('hidden');
+
+      const config = await db.getEssayConfig(activeContest.id);
+      const board = activeContest.board;
+      const nome_do_concurso = activeContest.name;
+      const nome_da_materia = activeSubject.name;
+      const tipo_redacao = config.essay_type;
+      const diretrizes_redacao = config.guidelines;
+
+      const systemPrompt = `Você é a banca examinadora ${board} para o certame ${nome_do_concurso}. Crie um tema de redação discursiva (estilo ${tipo_redacao}) baseado nas diretrizes do edital:
+"${diretrizes_redacao}"
+
+O tema deve simular um problema prático real que um Analista de TI enfrentará no dia a dia no Tribunal de Justiça de Pernambuco (TJPE), integrando os assuntos da matéria "${nome_da_materia}".
+Forneça um Tema central e 3 Tópicos obrigatórios de desenvolvimento.
+
+Formato de Saída (JSON estrito):
+{
+  "tema": "Título/Contextualização do Tema Central da Redação.",
+  "topicos": [
+    "Tópico obrigatório 1",
+    "Tópico obrigatório 2",
+    "Tópico obrigatório 3"
+  ],
+  "espelhoResposta": "Texto explicativo que serve de espelho padrão de resposta contendo o que a banca espera em termos de conteúdo para cada um dos 3 tópicos obrigatórios."
+}`;
+
+      const userPrompt = `Crie o tema técnico de redação baseado na matéria "${nome_da_materia}" e especificações fornecidas.`;
+
+      try {
+        let jsonResponse;
+        const apiKey = localStorage.getItem('edutech_gemini_key');
+        
+        if (apiKey) {
+          jsonResponse = await queryGeminiAPI(systemPrompt, userPrompt);
+        } else {
+          await new Promise(r => setTimeout(r, 2000));
+          jsonResponse = getMockEssayTheme(nome_da_materia);
+          showToast("Rodando em Modo Simulação de IA.", "info");
+        }
+
+        activeEssayTheme = jsonResponse;
+        
+        // Render
+        document.getElementById('essayActiveThemeTitle').textContent = jsonResponse.tema;
+        const list = document.getElementById('essayActiveThemeTopics');
+        list.innerHTML = '';
+        jsonResponse.topicos.forEach(t => {
+          const li = document.createElement('li');
+          li.textContent = t;
+          list.appendChild(li);
+        });
+
+        // Set espelho
+        document.getElementById('essayEspelhoText').textContent = jsonResponse.espelhoResposta || "Nenhum espelho gerado.";
+
+        loading.classList.add('hidden');
+        themeContainer.classList.remove('hidden');
+        espelhoBtn.classList.remove('hidden');
+
+      } catch (err) {
+        console.error(err);
+        loading.classList.add('hidden');
+        showToast("Falha ao gerar tema de redação: " + err.message, "error");
+      }
+    }
+
+    function getMockEssayTheme(materiaName) {
+      return {
+        tema: `Desenvolvimento seguro de APIs de integração para consultas de processos no PJe sob as regras da LGPD no Tribunal de Justiça de Pernambuco (TJPE).`,
+        topicos: [
+          "Mecanismos de autenticação robusta (OAuth2/JWT) e controle de acesso baseado em papéis (RBAC) necessários para proteger a integridade dos dados processuais do TJPE.",
+          "Medidas práticas para anonimização de dados confidenciais e tratamento de dados de menores no ecossistema do PJe conforme preceitua a LGPD.",
+          "Criação de trilhas completas de auditoria (logs imutáveis) para rastrear o acesso de servidores e magistrados às informações críticas."
+        ],
+        espelhoResposta: `Espelho de Resposta Esperado pela Banca Examinadora:
+1. Mecanismos de Autenticação (OAuth2/JWT) e RBAC: O candidato deve discorrer sobre a importância de garantir que apenas usuários autorizados tenham acesso à API, detalhando o funcionamento do protocolo OAuth2 e a troca de tokens assinados criptograficamente. Deve abordar a implementação do RBAC para segregar funções específicas (ex: Juiz, Promotor, Advogado, Servidor).
+2. LGPD e Anonimização: Espera-se a explanação sobre princípios da LGPD como a minimização dos dados e a necessidade de segurança lógica. O candidato deve detalhar técnicas de anonimização e mascaramento de dados ao exportar relatórios processuais, com foco especial na blindagem de dados sensíveis de menores.
+3. Trilhas de Auditoria: O texto deve destacar que todas as requisições de escrita ou leitura sensível devem registrar metadados (IP, ID do usuário, data, ação, dados alterados) em logs protegidos contra adulteração para garantir a rastreabilidade e a transparência pública.`
+      };
+    }
+
+    function showEssayEspelho() {
+      const container = document.getElementById('essayEspelhoContainer');
+      container.classList.remove('hidden');
+    }
+
+    // ==========================================
+    // 9.C: PROMPT C - SUBMETER REDAÇÃO E CORREÇÃO
+    // ==========================================
+    async function submitEssayForCorrection() {
+      const draft = document.getElementById('essayEditor').value.trim();
+      if (!draft) {
+        showToast("Escreva seu rascunho de redação antes de submeter", "warning");
+        return;
+      }
+
+      if (!activeEssayTheme) {
+        showToast("Gere um tema de redação antes de submeter seu texto", "warning");
+        return;
+      }
+
+      const lines = draft.split('\n');
+      const linesLimit = parseInt(document.getElementById('wizEssayMaxLines').value) || 30;
+      if (lines.length > linesLimit) {
+        showToast(`Sua redação excedeu o limite máximo de ${linesLimit} linhas.`, "error");
+        return;
+      }
+
+      const loading = document.getElementById('essayCorrectionLoading');
+      const resultsContainer = document.getElementById('essayCorrectionResults');
+      
+      resultsContainer.classList.add('hidden');
+      loading.classList.remove('hidden');
+
+      const config = await db.getEssayConfig(activeContest.id);
+      
+      const board = activeContest.board;
+      const nome_do_concurso = activeContest.name;
+      const content_score_max = config.content_score_max;
+      const structure_score_max = config.structure_score_max;
+      const macro_score_max = config.macro_score_max;
+      const topicos_propostos = activeEssayTheme.topicos.join("; ");
+      const error_deduction_rules_json = JSON.stringify(config.error_deduction_rates);
+      const formula_type = config.formula_type;
+      const formula_multiplier = config.formula_multiplier;
+      const formula_explanation = config.formula_explanation;
+      const max_lines = config.max_lines;
+
+      const systemPrompt = `Você é o avaliador oficial da banca ${board} para a prova discursiva de ${nome_do_concurso}.
+Corrija a redação enviada pelo aluno com base estrita nos parâmetros e critérios de pontuação definidos para este certame.
+
+Parâmetros de Pontuação e Avaliação de Conteúdo (Macroestrutura):
+- Pontuação Máxima de Conteúdo (Macroestrutura): ${content_score_max} pontos de um total de ${macro_score_max}.
+- Pontuação Máxima de Estrutura: ${structure_score_max} pontos de um total de ${macro_score_max}.
+- Os tópicos propostos que deveriam ser abordados e respondidos pelo aluno são: ${topicos_propostos}.
+
+Parâmetros de Penalidade Gramatical (Microestrutura):
+Sempre que identificar um desvio gramatical, aplique estritamente as seguintes taxas de penalização informadas pelo usuário:
+${error_deduction_rules_json}
+
+Regra e Fórmula Matemática de Cálculo da Nota Final:
+Calcule a Nota Final utilizando a fórmula matemática parametrizada abaixo:
+- Tipo de Fórmula/Cálculo: ${formula_type}
+- Multiplicador de Desconto (K): ${formula_multiplier}
+- Descrição da Fórmula a ser computada: ${formula_explanation}
+
+Exemplo de processamento para cálculo:
+Se a fórmula for baseada em desconto por linha (estilo Cebraspe):
+$$NF = NC - \\left(K \\times \\frac{NE}{TLE}\\right)$$
+onde $NF$ é a Nota Final, $NC$ é a Nota de Conteúdo (Macroestrutura + Estrutura), $K$ é o multiplicador ${formula_multiplier}, $NE$ é o Número de Erros identificados e $TLE$ é o Total de Linhas Efetivamente escritas pelo aluno (máximo de ${max_lines} linhas).
+
+Se a fórmula for subtrativa direta (estilo FGV/FCC):
+$$NF = NC - \\sum (Penalidades)$$
+onde a nota final $NF$ é a soma das notas estruturais e de conteúdo $NC$, subtraindo as penalidades individuais de microestrutura com base no JSON fornecido.
+
+Redação do Aluno:
+\"\"\"
+${draft}
+\"\"\"
+
+Faça uma análise extremamente minuciosa do texto. Identifique e liste cada erro gramatical, sintático, ortográfico ou de coesão, especificando o trecho, o tipo de erro (spelling_error_deduction, grammatical_error_deduction, syntax_error_deduction ou vocabulary_error_deduction), a linha aproximada em que ocorreu e o desconto aplicado de acordo com o JSON de descontos enviado.
+
+Formato de Saída esperado (JSON estrito):
+{
+  "pontuacaoFinal": 85.50,
+  "linhasEfetivamenteEscritas": 28,
+  "macroestruturaFeedback": "Critique sobre a abordagem do tema central e consistência de resposta aos tópicos propostos.",
+  "errosMicroestrutura": [
+    {
+      "linha": 12,
+      "trecho": "houveram problemas",
+      "erro": "Erro de concordância verbal com o verbo haver no sentido de existir.",
+      "correcao": "houve problemas",
+      "penalidadeAplicada": -0.30
+    }
+  ],
+  "pontuacaoPorCriterio": {
+    "conteudo": "Nota atribuída ao conteúdo da resposta (max: ${content_score_max}) com justificativa analítica...",
+    "estruturaCoesao": "Nota atribuída à coesão, coerência e adequação estrutural (max: ${structure_score_max}) com justificativa analítica..."
+  },
+  "veredictoFinal": "Parecer final consolidado com dicas claras de redação adaptadas ao perfil de correção parametrizado."
+}`;
+
+      const userPrompt = `Corrija a redação digitada com rigor, aplique a fórmula matemática e retorne o JSON estruturado.`;
+
+      try {
+        let jsonResponse;
+        const apiKey = localStorage.getItem('edutech_gemini_key');
+        
+        if (apiKey) {
+          jsonResponse = await queryGeminiAPI(systemPrompt, userPrompt);
+        } else {
+          await new Promise(r => setTimeout(r, 2000));
+          jsonResponse = getMockEssayCorrection(draft, config);
+          showToast("Rodando em Modo Simulação de IA.", "info");
+        }
+
+        // --- VALIDAÇÃO/GARANTIA MATEMÁTICA CLIENT-SIDE ---
+        // Extrai a nota de Conteúdo + Estrutura fornecida pela IA (se houver) ou calcula com base na fórmula
+        // Para evitar erros de matemática lógica do modelo LLM
+        let ncValue = config.macro_score_max;
+        const contMatch = jsonResponse.pontuacaoPorCriterio.conteudo.match(/(\d+(\.\d+)?)/);
+        const estMatch = jsonResponse.pontuacaoPorCriterio.estruturaCoesao.match(/(\d+(\.\d+)?)/);
+        
+        if (contMatch && estMatch) {
+          ncValue = parseFloat(contMatch[1]) + parseFloat(estMatch[1]);
+        } else {
+          // Se a IA não isolou a nota numérica perfeitamente, assume a nota informada pela IA
+          ncValue = jsonResponse.pontuacaoFinal + Math.abs(jsonResponse.errosMicroestrutura.reduce((acc, curr) => acc + parseFloat(curr.penalidadeAplicada || 0), 0));
+        }
+
+        const linesEfetivas = draft.split('\n').filter(l => l.trim() !== '').length;
+        const finalCalculated = calculateClientSideEssayScore(ncValue, jsonResponse.errosMicroestrutura, config, linesEfetivas);
+        
+        // Atualiza nota calculada com exatidão matemática
+        jsonResponse.pontuacaoFinal = finalCalculated;
+        jsonResponse.linhasEfetivamenteEscritas = linesEfetivas;
+
+        // Salvar Redação no BD
+        await db.saveUserEssay(config.id, activeEssayTheme.tema, draft, jsonResponse.pontuacaoFinal, jsonResponse);
+
+        // Atualizar pontuação global do jogador
+        const scoreGain = Math.round(jsonResponse.pontuacaoFinal);
+        const newScore = await db.updateProfileScore(scoreGain);
+        document.getElementById('headerPlayerScore').textContent = newScore;
+
+        loading.classList.add('hidden');
+        resultsContainer.classList.remove('hidden');
+        
+        // Renderizar resultados da Redação
+        renderEssayCorrectionUI(jsonResponse, config, ncValue);
+        showToast(`Redação Corrigida! Nota: ${jsonResponse.pontuacaoFinal}. +${scoreGain} pts!`, "success");
+
+      } catch (err) {
+        console.error(err);
+        loading.classList.add('hidden');
+        showToast("Falha na correção de redação: " + err.message, "error");
+      }
+    }
+
+    // Calcula de forma precisa a nota da redação no cliente para blindar o sistema de alucinações da IA
+    function calculateClientSideEssayScore(nc, errorsList, config, TLE) {
+      const K = parseFloat(config.formula_multiplier || 2.00);
+      const TLE_val = Math.max(1, parseInt(TLE || 1));
+      const formulaType = config.formula_type || 'cebraspe';
+      
+      let finalScore = parseFloat(nc);
+      let totalDeduction = 0;
+
+      if (formulaType === 'cebraspe') {
+        const NE = errorsList.length;
+        const deduction = K * (NE / TLE_val);
+        finalScore = nc - deduction;
+      } else {
+        // fgv ou fcc - subtrativa direta
+        errorsList.forEach(err => {
+          totalDeduction += Math.abs(parseFloat(err.penalidadeAplicada || 0));
+        });
+        finalScore = nc - totalDeduction;
+      }
+
+      return Math.max(0, parseFloat(finalScore.toFixed(2)));
+    }
+
+    function getMockEssayCorrection(draft, config) {
+      const lines = draft.split('\n');
+      const linesEfetivas = lines.filter(l => l.trim() !== '').length;
+      
+      // Simula detecção de erro se encontrar certas palavras
+      const errors = [];
+      lines.forEach((lineText, idx) => {
+        if (lineText.includes("houveram")) {
+          errors.push({
+            linha: idx + 1,
+            trecho: "houveram falhas",
+            erro: "Erro de concordância verbal com o verbo haver no sentido de existir.",
+            correcao: "houve falhas",
+            penalidadeAplicada: -config.error_deduction_rates.grammatical_error_deduction
+          });
+        }
+        if (lineText.includes("cibernética tornou-se")) {
+          // Apenas para simular um erro fictício de vírgula se a linha for curta
+          if (lineText.length < 50) {
+            errors.push({
+              linha: idx + 1,
+              trecho: "cibernética tornou-se",
+              erro: "Uso inadequado de próclise/ênclise em início de oração após pontuação.",
+              correcao: "cibernética se tornou",
+              penalidadeAplicada: -config.error_deduction_rates.syntax_error_deduction
+            });
+          }
+        }
+      });
+
+      const maxContent = config.content_score_max;
+      const maxStructure = config.structure_score_max;
+      
+      // Notas macro aproximadas
+      const cScore = maxContent - (errors.length * 2);
+      const sScore = maxStructure - (errors.length * 1.5);
+      const nc = cScore + sScore;
+
+      return {
+        pontuacaoFinal: nc, // Será ajustada pela função calculadora
+        linhasEfetivamenteEscritas: linesEfetivas,
+        macroestruturaFeedback: `A redação aborda adequadamente o tema proposto. Apresentou boa estruturação e respondeu satisfatoriamente aos três tópicos obrigatórios com termos técnicos alinhados à TI do TJPE.`,
+        errosMicroestrutura: errors,
+        pontuacaoPorCriterio: {
+          conteudo: `Nota de conteúdo: ${cScore.toFixed(2)} / ${maxContent.toFixed(2)}. Abordou a LGPD e criptografia de dados de forma conceitual consistente.`,
+          estruturaCoesao: `Nota de estrutura: ${sScore.toFixed(2)} / ${maxStructure.toFixed(2)}. Parágrafos bem encadeados, com bom uso de conectivos textuais.`
+        },
+        veredictoFinal: `Candidato demonstra boa fluência de escrita em assuntos corporativos de tecnologia. Recomenda-se maior rigor gramatical para evitar deduções de concordância.`
+      };
+    }
+
+    function renderEssayCorrectionUI(res, config, ncValue) {
+      document.getElementById('correctScoreVal').textContent = res.pontuacaoFinal.toFixed(2);
+      document.getElementById('correctMaxScoreVal').textContent = ` / ${config.macro_score_max}`;
+      
+      // Detalhes da fórmula
+      document.getElementById('resFormulaType').textContent = config.formula_type.toUpperCase();
+      document.getElementById('resTLE').textContent = res.linhasEfetivamenteEscritas;
+      document.getElementById('resNC').textContent = ncValue.toFixed(2);
+      document.getElementById('resNE').textContent = res.errosMicroestrutura.length;
+      document.getElementById('resFormulaMath').textContent = config.formula_explanation;
+
+      // Critérios
+      document.getElementById('resScoreConteudo').textContent = res.pontuacaoPorCriterio.conteudo;
+      document.getElementById('resScoreEstrutura').textContent = res.pontuacaoPorCriterio.estruturaCoesao;
+      document.getElementById('resFeedbackMacro').textContent = res.macroestruturaFeedback;
+      document.getElementById('resVerdict').textContent = res.veredictoFinal;
+
+      // Tabela de erros
+      const tbody = document.getElementById('resErrorsTableBody');
+      tbody.innerHTML = '';
+      const noErrors = document.getElementById('noMicroErrorsMsg');
+
+      if (res.errosMicroestrutura.length === 0) {
+        noErrors.classList.remove('hidden');
+      } else {
+        noErrors.classList.add('hidden');
+        res.errosMicroestrutura.forEach(err => {
+          const row = document.createElement('tr');
+          row.className = "hover:bg-gray-800/80 cursor-pointer border-b border-gray-800 transition";
+          row.innerHTML = `
+            <td class="p-2 font-mono text-brandorange font-bold text-center">${err.linha}</td>
+            <td class="p-2 text-red-400 font-bold font-mono">${err.trecho}</td>
+            <td class="p-2 text-gray-400">${err.erro}</td>
+            <td class="p-2 text-brandgreen font-bold font-mono">${err.correcao}</td>
+            <td class="p-2 text-red-500 font-bold">${parseFloat(err.penalidadeAplicada).toFixed(2)}</td>
+          `;
+          
+          // Click to highlight line in editor
+          row.onclick = () => {
+            const editor = document.getElementById('essayEditor');
+            const lines = editor.value.split('\n');
+            const lineNum = err.linha - 1;
+            if (lineNum >= 0 && lineNum < lines.length) {
+              editor.focus();
+              
+              // Simplificado: seleciona a linha inteira no editor
+              let startPos = 0;
+              for (let i = 0; i < lineNum; i++) {
+                startPos += lines[i].length + 1; // +1 para o \n
+              }
+              const endPos = startPos + lines[lineNum].length;
+              editor.setSelectionRange(startPos, endPos);
+              
+              showToast(`Linha ${err.linha} destacada no editor!`, "warning");
+            }
+          };
+          tbody.appendChild(row);
+        });
+      }
+    }
+
+    // ==========================================
+    // 10. CICLO DE RECUPERAÇÃO ATIVO (SIMULADO INTELIGENTE)
+    // ==========================================
+    async function runRecoverySimulado() {
+      if (!activeContest) return;
+
+      showToast("Buscando pontos de vulnerabilidade no seu histórico...", "info");
+
+      // 1. Achar tópicos com menor percentual de acerto no concurso ativo
+      const subjects = await db.getSubjects(activeContest.id);
+      const subjIds = subjects.map(s => s.id);
+      const topics = [];
+      
+      for (let s of subjects) {
+        const tops = await db.getTopics(s.id);
+        topics.push(...tops);
+      }
+
+      if (topics.length === 0) {
+        showToast("Adicione matérias e assuntos antes de gerar o simulado", "warning");
+        return;
+      }
+
+      const progressList = await db.getUserProgress();
+      const topicScores = [];
+
+      for (let t of topics) {
+        const stats = await db.getTopicRecurrence(t.id);
+        const prog = progressList.find(p => p.topic_id === t.id);
+        
+        const correct = prog?.correct_count || 0;
+        const incorrect = prog?.incorrect_count || 0;
+        const total = correct + incorrect;
+        const accuracy = total > 0 ? (correct / total) : 1.0; // Se não jogou, assume 100% para não interferir negativamente
+
+        topicScores.push({
+          topic: t,
+          subject: subjects.find(s => s.id === t.subject_id),
+          stats,
+          correct,
+          incorrect,
+          accuracy
+        });
+      }
+
+      // Ordenar por menor acurácia e priorizar os que têm erros registrados
+      topicScores.sort((a, b) => {
+        if (a.incorrect !== b.incorrect) {
+          return b.incorrect - a.incorrect; // Mais erros primeiro
+        }
+        return a.accuracy - b.accuracy; // Menor acurácia primeiro
+      });
+
+      // Pega os tópicos vulneráveis (acurácia < 0.7 ou com erros)
+      const weakTopics = topicScores.filter(ts => ts.incorrect > 0 || ts.accuracy < 0.70);
+
+      // Se não houver pontos fracos identificados, avisa o usuário e gera um simulado aleatório do edital completo
+      if (weakTopics.length === 0) {
+        showToast("Nenhum ponto fraco crítico detectado! Gerando Simulado Geral.", "success");
+        // Cria lista de todos os tópicos disponíveis
+        const allTopicsData = topics.map(t => ({
+          topic: t,
+          subject: subjects.find(s => s.id === t.subject_id),
+          stats: null
+        }));
+        await goToStudyHub();
+        // Switch tab to questions
+        switchWorkspaceTab('questions');
+        await generateQuestions(true, allTopicsData);
+      } else {
+        showToast(`Simulado ativo de Recuperação iniciado sobre os seus tópicos vulneráveis!`, "warning");
+        await goToStudyHub();
+        switchWorkspaceTab('questions');
+        await generateQuestions(true, weakTopics);
+      }
+    }
+
+    // Configurações unificadas do projeto "Estudos"
+  </script>
+</body>
+</html>
