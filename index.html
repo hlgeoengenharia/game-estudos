@@ -967,18 +967,12 @@
       constructor() {
         this.useSupabase = false;
         this.supabaseClient = null;
-        this.userId = "default-user-uuid"; // ID de usuário Mock padrão
-        this.init();
+        this.userId = "00000000-0000-0000-0000-000000000000"; // ID de usuário Mock padrão
       }
 
-      init() {
+      async init() {
         // Credenciais permanentes do projeto "Estudos" no Supabase
         const url = "https://xuzangohhcohrbaipiik.supabase.co";
-
-        // =========================================================================
-        // IMPORTANTE: Insira sua chave anon do Supabase na constante abaixo.
-        // Se a chave for mantida como 'SUA_SUPABASE_ANON_KEY_AQUI', a plataforma rodará em modo Mock.
-        // =========================================================================
         const key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1emFuZ29oaGNvaHJiYWlwaWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMzMzOTEsImV4cCI6MjA5NTcwOTM5MX0.sXFrfichNHrZbneDZqjBEBRq9_q-O6B67Bdq0eswMGU";
 
         if (url && key && key !== "SUA_SUPABASE_ANON_KEY_AQUI" && window.supabase) {
@@ -986,6 +980,7 @@
             this.supabaseClient = window.supabase.createClient(url, key);
             this.useSupabase = true;
             console.log("Supabase Cloud conectado com sucesso!");
+            await this.authenticateUser();
           } catch (e) {
             console.error("Falha ao inicializar Supabase: ", e);
             this.useSupabase = false;
@@ -997,9 +992,47 @@
         }
       }
 
+      async authenticateUser() {
+        try {
+          let { data: { session }, error } = await this.supabaseClient.auth.getSession();
+          if (error) throw error;
+
+          if (!session) {
+            // Login anônimo para gerar um UUID real no auth.users
+            const { data, error: authErr } = await this.supabaseClient.auth.signInAnonymously();
+            if (authErr) throw authErr;
+            session = data.session;
+          }
+
+          if (session && session.user) {
+            this.userId = session.user.id;
+            console.log("Autenticado no Supabase com UUID:", this.userId);
+
+            // Verifica se o perfil do usuário já existe na tabela profiles
+            const { data: profile } = await this.supabaseClient.from('profiles').select('*').eq('id', this.userId).maybeSingle();
+            if (!profile) {
+              const newProfile = {
+                id: this.userId,
+                updated_at: new Date().toISOString(),
+                username: "helton_leite_" + Math.random().toString(36).substr(2, 5),
+                full_name: "Helton Leite",
+                avatar_url: "https://api.dicebear.com/7.x/bottts/svg?seed=" + this.userId,
+                total_score: 0
+              };
+              await this.supabaseClient.from('profiles').insert(newProfile);
+              console.log("Perfil de usuário criado na tabela profiles.");
+            }
+          }
+        } catch (e) {
+          console.warn("Autenticação anônima falhou ou não está ativada. Executando em modo local.", e);
+          this.useSupabase = false;
+          this.fallbackToMock();
+        }
+      }
+
       fallbackToMock() {
         console.log("Banco rodando em Modo Local (Simulado localStorage).");
-        // Seed default dataset if missing
+        this.userId = "00000000-0000-0000-0000-000000000000";
         if (!localStorage.getItem('edutech_mock_db')) {
           this.seedMockDB();
         }
@@ -1009,7 +1042,7 @@
       seedMockDB() {
         const defaultDB = {
           profiles: [{
-            id: "default-user-uuid",
+            id: "00000000-0000-0000-0000-000000000000",
             updated_at: new Date().toISOString(),
             username: "helton_leite",
             full_name: "Helton Leite",
@@ -1018,7 +1051,7 @@
           }],
           contests: [{
             id: "contest-tjpe-uuid",
-            user_id: "default-user-uuid",
+            user_id: "00000000-0000-0000-0000-000000000000",
             name: "TJPE - Analista de TI",
             board: "IBFC",
             exam_style: "multipla_escolha",
@@ -1066,7 +1099,7 @@
           user_essays: [
             {
               id: "essay-1",
-              user_id: "default-user-uuid",
+              user_id: "00000000-0000-0000-0000-000000000000",
               essay_config_id: "config-tjpe",
               prompt_theme: "Segurança de dados sensíveis e LGPD no Processo Judicial Eletrônico (PJe) do TJPE.",
               user_draft: "No cenário atual de digitalização do TJPE, a segurança cibernética tornou-se um pilar fundamental.\nEsses sistemas houveram falhas de criptografia inicial, o que demanda o uso de algoritmos simétricos e assimétricos.\nA proteção dos dados do cidadão assegura a integridade das sentenças judiciais emitidas pelos magistrados.",
@@ -1088,9 +1121,9 @@
             },
             {
               id: "essay-2",
-              user_id: "default-user-uuid",
+              user_id: "00000000-0000-0000-0000-000000000000",
               essay_config_id: "config-tjpe",
-              prompt_theme: "Implementação de microsserviços e governança de dados no ecossistema de TI do TJPE.",
+              prompt_theme: "Implementação de microsserviços e governança de dados no ecossistema di TI do TJPE.",
               user_draft: "A governança tecnológica do judiciário requer escalabilidade. O uso de Kubernetes permite orquestração.\nA arquitetura baseada em microsserviços assegura que sistemas paralelos não entrem em colapso devido à sobrecarga de acessos.\nA segurança das informações nos cartórios virtuais é otimizada por meio de autenticação de dois fatores e controle rígido.",
               score: 93.00,
               eval_report: {
@@ -1108,9 +1141,9 @@
             }
           ],
           user_progress: [
-            { id: "prog-1", user_id: "default-user-uuid", topic_id: "topic-agile-uuid", correct_count: 14, incorrect_count: 3, last_played: new Date().toISOString() },
-            { id: "prog-2", user_id: "default-user-uuid", topic_id: "topic-arch-uuid", correct_count: 5, incorrect_count: 8, last_played: new Date().toISOString() },
-            { id: "prog-3", user_id: "default-user-uuid", topic_id: "topic-crypto-uuid", correct_count: 18, incorrect_count: 2, last_played: new Date().toISOString() }
+            { id: "prog-1", user_id: "00000000-0000-0000-0000-000000000000", topic_id: "topic-agile-uuid", correct_count: 14, incorrect_count: 3, last_played: new Date().toISOString() },
+            { id: "prog-2", user_id: "00000000-0000-0000-0000-000000000000", topic_id: "topic-arch-uuid", correct_count: 5, incorrect_count: 8, last_played: new Date().toISOString() },
+            { id: "prog-3", user_id: "00000000-0000-0000-0000-000000000000", topic_id: "topic-crypto-uuid", correct_count: 18, incorrect_count: 2, last_played: new Date().toISOString() }
           ]
         };
         localStorage.setItem('edutech_mock_db', JSON.stringify(defaultDB));
@@ -1616,7 +1649,7 @@
     // Sincroniza dados com o banco e renderiza
     async function syncData() {
       try {
-        db.init();
+        await db.init();
         currentProfile = await db.getProfile();
         if (currentProfile) {
           document.getElementById('headerPlayerName').textContent = currentProfile.full_name;
