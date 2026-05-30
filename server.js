@@ -2,6 +2,30 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
+// Carrega variáveis do arquivo .env local de forma automatizada, se existir
+try {
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    envContent.split(/\r?\n/).forEach(line => {
+      // Ignora comentários e linhas vazias
+      if (!line || line.trim().startsWith('#')) return;
+      
+      const parts = line.split('=');
+      if (parts.length >= 2) {
+        const key = parts[0].trim();
+        const value = parts.slice(1).join('=').trim().replace(/^["']|["']$/g, '');
+        if (key && value && !process.env[key]) {
+          process.env[key] = value;
+        }
+      }
+    });
+  }
+} catch (err) {
+  console.warn('[AVISO] Não foi possível ler o arquivo .env local:', err.message);
+}
+
+
 const PORT = 3000;
 
 const MIME_TYPES = {
