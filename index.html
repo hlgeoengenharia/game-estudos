@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Plataforma EduTech Multi-Concurso - V2.1</title>
-  
+
   <!-- Fontes Premium do Google -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -31,33 +34,36 @@
       }
     }
   </script>
-  
+
   <!-- Chart.js para Gráficos -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  
+
   <!-- PDF.js para Extração Local de Texto de PDFs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-  
+
   <!-- Biblioteca Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
+
   <style>
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 8px;
       height: 8px;
     }
+
     ::-webkit-scrollbar-track {
       background: #1a202c;
     }
+
     ::-webkit-scrollbar-thumb {
       background: #4a5568;
       border-radius: 4px;
     }
+
     ::-webkit-scrollbar-thumb:hover {
       background: #718096;
     }
-    
+
     /* Lined Paper style for Essay textarea */
     .lined-paper {
       background: repeating-linear-gradient(#2d3748, #2d3748 29px, #4a5568 30px);
@@ -74,33 +80,39 @@
       box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4);
       animation: pulse-green 2s infinite;
     }
+
     @keyframes pulse-green {
       0% {
         box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
       }
+
       70% {
         box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
       }
+
       100% {
         box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
       }
     }
   </style>
 </head>
+
 <body class="bg-darkbg text-gray-100 font-sans min-h-screen flex flex-col">
 
   <!-- TOAST NOTIFICATIONS -->
   <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
   <!-- HEADER / TOP NAV -->
-  <header class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex flex-wrap items-center justify-between shadow-lg sticky top-0 z-30">
+  <header
+    class="bg-gray-800 border-b border-gray-700 px-6 py-4 flex flex-wrap items-center justify-between shadow-lg sticky top-0 z-30">
     <div class="flex items-center gap-3">
       <div class="bg-gradient-to-tr from-brandpurple to-brandgreen p-2.5 rounded-xl shadow-md">
         <span class="text-2xl">🎯</span>
       </div>
       <div>
         <h1 class="font-display font-bold text-xl tracking-tight text-white flex items-center gap-2">
-          EduTech Concursos <span class="bg-purple-900 text-purple-200 text-xs px-2 py-0.5 rounded-full font-sans font-semibold border border-purple-700">V2.1</span>
+          EduTech Concursos <span
+            class="bg-purple-900 text-purple-200 text-xs px-2 py-0.5 rounded-full font-sans font-semibold border border-purple-700">V2.1</span>
         </h1>
         <p class="text-xs text-gray-400">Plataforma Dinâmica de Gamificação & IA</p>
       </div>
@@ -111,11 +123,13 @@
 
       <!-- Player Score Widget -->
       <div class="flex items-center gap-3 bg-gray-900 border border-gray-700 rounded-xl p-1.5 pr-4 pl-3 shadow-inner">
-        <img id="headerAvatar" class="w-8 h-8 rounded-lg bg-gray-700" src="https://api.dicebear.com/7.x/bottts/svg?seed=helton" alt="Avatar">
+        <img id="headerAvatar" class="w-8 h-8 rounded-lg bg-gray-700"
+          src="https://api.dicebear.com/7.x/bottts/svg?seed=helton" alt="Avatar">
         <div>
           <div class="text-xs text-gray-400 font-semibold" id="headerPlayerName">Helton Leite</div>
           <div class="text-sm font-black text-brandgreen flex items-center gap-1">
-            <span>🏆</span> <span id="headerPlayerScore">0</span> <span class="text-xs font-normal text-gray-500">pts</span>
+            <span>🏆</span> <span id="headerPlayerScore">0</span> <span
+              class="text-xs font-normal text-gray-500">pts</span>
           </div>
         </div>
       </div>
@@ -124,15 +138,16 @@
 
   <!-- MAIN APP CONTAINER -->
   <main class="flex-grow flex flex-col md:flex-row">
-    
+
     <!-- LEFT SIDEBAR: Active Contests & Wizard Trigger -->
     <aside class="w-full md:w-80 bg-gray-900 border-r border-gray-800 p-6 flex flex-col shrink-0 gap-6">
-      
+
       <!-- Contests Section -->
       <div class="flex-grow flex flex-col gap-4">
         <div class="flex items-center justify-between">
           <h3 class="font-display font-bold text-gray-400 text-xs uppercase tracking-wider">Seus Editais</h3>
-          <button onclick="openWizard()" class="bg-brandgreen hover:bg-green-600 text-darkbg font-bold text-xs py-1 px-2.5 rounded-lg flex items-center gap-1 transition duration-150 shadow-md">
+          <button onclick="openWizard()"
+            class="bg-brandgreen hover:bg-green-600 text-darkbg font-bold text-xs py-1 px-2.5 rounded-lg flex items-center gap-1 transition duration-150 shadow-md">
             <span>+</span> Novo
           </button>
         </div>
@@ -143,46 +158,58 @@
       </div>
 
       <!-- Quick Tips Card -->
-      <div class="bg-gradient-to-r from-gray-800 to-gray-700/50 p-4 rounded-xl border border-gray-700 shadow-sm text-xs text-gray-300">
+      <div
+        class="bg-gradient-to-r from-gray-800 to-gray-700/50 p-4 rounded-xl border border-gray-700 shadow-sm text-xs text-gray-300">
         <h4 class="font-bold text-white mb-1.5 flex items-center gap-1.5 text-sm">
           <span>🧠</span> Inteligência de Estudo
         </h4>
         <p class="leading-relaxed">
-          Os tópicos cadastrados com maior <span class="text-brandorange font-semibold">recorrência de banca</span> terão maior prioridade no Tutor IA durante a geração de questões e temas de redação.
+          Os tópicos cadastrados com maior <span class="text-brandorange font-semibold">recorrência de banca</span>
+          terão maior prioridade no Tutor IA durante a geração de questões e temas de redação.
         </p>
       </div>
     </aside>
 
     <!-- RIGHT PANEL: SCREEN SWITCHER -->
     <div class="flex-grow p-6 md:p-8 flex flex-col gap-6 overflow-x-hidden">
-      
+
       <!-- A. SCREEN: WELCOME / INITIAL CONTEXT (WHEN NO CONTESTS EXIST) -->
-      <section id="screenWelcome" class="hidden max-w-2xl mx-auto my-auto text-center flex flex-col items-center gap-6 py-12 px-6 bg-gray-800/50 rounded-2xl border border-gray-700/60 shadow-xl">
+      <section id="screenWelcome"
+        class="hidden max-w-2xl mx-auto my-auto text-center flex flex-col items-center gap-6 py-12 px-6 bg-gray-800/50 rounded-2xl border border-gray-700/60 shadow-xl">
         <span class="text-6xl animate-bounce">📚</span>
         <h2 class="font-display font-extrabold text-3xl text-white">Nenhum Concurso Cadastrado</h2>
         <p class="text-gray-300 max-w-md leading-relaxed">
-          Comece agora mesmo a se preparar! Cadastre seu edital no assistente para treinar com inteligência artificial parametrizada e análise de banca.
+          Comece agora mesmo a se preparar! Cadastre seu edital no assistente para treinar com inteligência artificial
+          parametrizada e análise de banca.
         </p>
-        <button onclick="openWizard()" class="bg-gradient-to-r from-brandgreen to-green-600 hover:from-green-600 hover:to-green-700 text-darkbg font-extrabold text-lg py-3 px-8 rounded-xl shadow-lg transition duration-200 transform hover:scale-105 flex items-center gap-2">
+        <button onclick="openWizard()"
+          class="bg-gradient-to-r from-brandgreen to-green-600 hover:from-green-600 hover:to-green-700 text-darkbg font-extrabold text-lg py-3 px-8 rounded-xl shadow-lg transition duration-200 transform hover:scale-105 flex items-center gap-2">
           <span>🚀</span> Iniciar Assistente de Configuração
         </button>
       </section>
 
       <!-- B. SCREEN: DASHBOARD PRINCIPAL -->
       <section id="screenDashboard" class="hidden flex flex-col gap-6">
-        
+
         <!-- Header Info -->
-        <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-800/40 p-6 rounded-2xl border border-gray-700/50">
+        <div
+          class="flex flex-wrap items-center justify-between gap-4 bg-gray-800/40 p-6 rounded-2xl border border-gray-700/50">
           <div>
-            <span class="text-xs bg-brandpurple/30 text-purple-300 font-bold px-2.5 py-1 rounded-full border border-brandpurple/50 uppercase tracking-wide" id="dashContestBoard">Banca</span>
-            <h2 class="font-display font-black text-2xl md:text-3xl text-white mt-2" id="dashContestName">Concurso TJPE</h2>
-            <p class="text-sm text-gray-400 mt-1">Estilo de Prova: <span id="dashContestStyle" class="font-semibold text-gray-200">Múltipla Escolha</span></p>
+            <span
+              class="text-xs bg-brandpurple/30 text-purple-300 font-bold px-2.5 py-1 rounded-full border border-brandpurple/50 uppercase tracking-wide"
+              id="dashContestBoard">Banca</span>
+            <h2 class="font-display font-black text-2xl md:text-3xl text-white mt-2" id="dashContestName">Concurso TJPE
+            </h2>
+            <p class="text-sm text-gray-400 mt-1">Estilo de Prova: <span id="dashContestStyle"
+                class="font-semibold text-gray-200">Múltipla Escolha</span></p>
           </div>
           <div class="flex items-center gap-3">
-            <button id="simuladoRecuperacaoBtn" onclick="runRecoverySimulado()" class="pulse-glow-green bg-gradient-to-r from-brandgreen to-green-600 hover:from-green-600 hover:to-green-700 text-darkbg font-extrabold py-3 px-5 rounded-xl transition duration-200 shadow-lg flex items-center gap-2 text-sm">
+            <button id="simuladoRecuperacaoBtn" onclick="runRecoverySimulado()"
+              class="pulse-glow-green bg-gradient-to-r from-brandgreen to-green-600 hover:from-green-600 hover:to-green-700 text-darkbg font-extrabold py-3 px-5 rounded-xl transition duration-200 shadow-lg flex items-center gap-2 text-sm">
               <span>⚡</span> Simulado de Recuperação
             </button>
-            <button onclick="goToStudyHub()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-5 rounded-xl border border-gray-600 transition duration-200 text-sm">
+            <button onclick="goToStudyHub()"
+              class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-5 rounded-xl border border-gray-600 transition duration-200 text-sm">
               Estação de Trabalho 📂
             </button>
           </div>
@@ -190,7 +217,7 @@
 
         <!-- Charts Dashboard Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
+
           <!-- Box 1: Questões Stats -->
           <div class="bg-gray-800/60 p-6 rounded-2xl border border-gray-700/50 flex flex-col gap-4 shadow-md">
             <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
@@ -221,7 +248,8 @@
             </div>
             <div class="bg-gray-900/50 p-3 rounded-lg border border-gray-700/30 text-xs text-gray-300 leading-relaxed">
               <span class="font-bold text-white block mb-1">Status da Redação:</span>
-              Fórmulas ativas utilizam parâmetros específicos da banca para dedução de desvios microestruturais. Submeta redações para ver seu gráfico subir.
+              Fórmulas ativas utilizam parâmetros específicos da banca para dedução de desvios microestruturais. Submeta
+              redações para ver seu gráfico subir.
             </div>
           </div>
 
@@ -245,12 +273,14 @@
 
       <!-- C. SCREEN: HUB DE ESTUDOS (ESTAÇÃO DE TRABALHO) -->
       <section id="screenStudyHub" class="hidden flex flex-col lg:flex-row gap-6">
-        
+
         <!-- Accordion Selector Sidebar (Left inside Main) -->
-        <div class="w-full lg:w-72 bg-gray-800/40 p-4 rounded-2xl border border-gray-700/50 flex flex-col gap-4 shrink-0">
+        <div
+          class="w-full lg:w-72 bg-gray-800/40 p-4 rounded-2xl border border-gray-700/50 flex flex-col gap-4 shrink-0">
           <div class="flex items-center justify-between border-b border-gray-700/60 pb-2">
             <h3 class="font-display font-bold text-sm text-gray-200">Estrutura do Edital</h3>
-            <button onclick="goToDashboard()" class="text-xs text-brandpurple font-bold hover:underline">Voltar 🏠</button>
+            <button onclick="goToDashboard()" class="text-xs text-brandpurple font-bold hover:underline">Voltar
+              🏠</button>
           </div>
           <div id="studyAccordionContainer" class="flex flex-col gap-2 overflow-y-auto max-h-[400px] lg:max-h-[none]">
             <!-- Dynamic Subject/Topic Tree Accordion -->
@@ -259,26 +289,33 @@
 
         <!-- Topic Active Detail Panel (Right inside Main) -->
         <div class="flex-grow flex flex-col gap-6">
-          
+
           <!-- Welcome details if no topic selected -->
-          <div id="topicWorkspacePlaceholder" class="bg-gray-800/20 py-20 px-6 rounded-2xl border border-dashed border-gray-700/80 text-center flex flex-col items-center gap-4 my-auto">
+          <div id="topicWorkspacePlaceholder"
+            class="bg-gray-800/20 py-20 px-6 rounded-2xl border border-dashed border-gray-700/80 text-center flex flex-col items-center gap-4 my-auto">
             <span class="text-5xl">👈</span>
             <h3 class="font-display font-bold text-xl text-gray-300">Selecione um Assunto</h3>
             <p class="text-gray-400 text-sm max-w-xs leading-relaxed">
-              Escolha um assunto na árvore do edital ao lado para acessar a teoria, materiais de apoio e treinar com a Inteligência Artificial.
+              Escolha um assunto na árvore do edital ao lado para acessar a teoria, materiais de apoio e treinar com a
+              Inteligência Artificial.
             </p>
           </div>
 
           <!-- Active Workspace (Visible only when topic is active) -->
           <div id="topicWorkspaceActive" class="hidden flex flex-col gap-6">
-            
+
             <!-- Recurrence stats & Title bar -->
-            <div class="bg-gradient-to-r from-gray-800 to-gray-700/50 p-6 rounded-2xl border border-gray-700/50 flex flex-wrap items-center justify-between gap-4 shadow-md">
+            <div
+              class="bg-gradient-to-r from-gray-800 to-gray-700/50 p-6 rounded-2xl border border-gray-700/50 flex flex-wrap items-center justify-between gap-4 shadow-md">
               <div class="flex-grow max-w-full">
-                <span class="text-xs bg-brandorange/30 text-orange-300 font-bold px-2 py-0.5 rounded border border-brandorange/40" id="topicActiveSubject">Nome da Matéria</span>
-                <h2 class="font-display font-black text-xl md:text-2xl text-white mt-1.5" id="topicActiveTitle">Título do Tópico</h2>
+                <span
+                  class="text-xs bg-brandorange/30 text-orange-300 font-bold px-2 py-0.5 rounded border border-brandorange/40"
+                  id="topicActiveSubject">Nome da Matéria</span>
+                <h2 class="font-display font-black text-xl md:text-2xl text-white mt-1.5" id="topicActiveTitle">Título
+                  do Tópico</h2>
               </div>
-              <div class="bg-gray-900 border border-gray-700/80 rounded-xl px-4 py-2.5 flex items-center gap-3 shrink-0">
+              <div
+                class="bg-gray-900 border border-gray-700/80 rounded-xl px-4 py-2.5 flex items-center gap-3 shrink-0">
                 <div class="text-center border-r border-gray-700 pr-3">
                   <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Recorrência</span>
                   <span class="text-lg font-black text-brandorange" id="topicActiveRecPercentage">0.00%</span>
@@ -291,27 +328,34 @@
 
             <!-- Tabs: Teoria/Materiais, Tutor Questões, Tutor Redação -->
             <div class="flex border-b border-gray-700 gap-1.5">
-              <button onclick="switchWorkspaceTab('theory')" id="tabBtn-theory" class="workspace-tab-btn font-display font-semibold text-sm px-4 py-2.5 rounded-t-xl transition duration-150 border-t border-x border-transparent">
+              <button onclick="switchWorkspaceTab('theory')" id="tabBtn-theory"
+                class="workspace-tab-btn font-display font-semibold text-sm px-4 py-2.5 rounded-t-xl transition duration-150 border-t border-x border-transparent">
                 📚 Teoria & Apoio
               </button>
-              <button onclick="switchWorkspaceTab('questions')" id="tabBtn-questions" class="workspace-tab-btn font-display font-semibold text-sm px-4 py-2.5 rounded-t-xl transition duration-150 border-t border-x border-transparent">
+              <button onclick="switchWorkspaceTab('questions')" id="tabBtn-questions"
+                class="workspace-tab-btn font-display font-semibold text-sm px-4 py-2.5 rounded-t-xl transition duration-150 border-t border-x border-transparent">
                 🤖 Tutor: Questões
               </button>
-              <button onclick="switchWorkspaceTab('essay')" id="tabBtn-essay" class="workspace-tab-btn font-display font-semibold text-sm px-4 py-2.5 rounded-t-xl transition duration-150 border-t border-x border-transparent">
+              <button onclick="switchWorkspaceTab('essay')" id="tabBtn-essay"
+                class="workspace-tab-btn font-display font-semibold text-sm px-4 py-2.5 rounded-t-xl transition duration-150 border-t border-x border-transparent">
                 ✏️ Tutor: Redação
               </button>
             </div>
 
             <!-- WORKSPACE TAB PANELS -->
             <div class="bg-gray-800/40 p-6 rounded-2xl border border-gray-700/50 shadow-inner min-h-[400px]">
-              
+
               <!-- TAB PANEL 1: THEORY / MATERIALS -->
               <div id="tabPanel-theory" class="workspace-tab-panel flex flex-col gap-6">
                 <!-- Editable base theory -->
                 <div>
-                  <label class="block text-xs font-bold uppercase text-gray-400 tracking-wider mb-2">Teoria Padrão / Conteúdo de Estudo</label>
-                  <textarea id="theoryContentField" rows="8" placeholder="Digite ou edite o texto principal da teoria..." class="w-full bg-gray-900 border border-gray-700 rounded-xl p-4 text-sm text-gray-200 focus:outline-none focus:border-brandpurple transition duration-150"></textarea>
-                  <button onclick="saveActiveTheory()" class="bg-brandpurple hover:bg-purple-600 text-white font-bold text-xs py-2 px-4 rounded-lg mt-2 transition duration-150 float-right">
+                  <label class="block text-xs font-bold uppercase text-gray-400 tracking-wider mb-2">Teoria Padrão /
+                    Conteúdo de Estudo</label>
+                  <textarea id="theoryContentField" rows="8"
+                    placeholder="Digite ou edite o texto principal da teoria..."
+                    class="w-full bg-gray-900 border border-gray-700 rounded-xl p-4 text-sm text-gray-200 focus:outline-none focus:border-brandpurple transition duration-150"></textarea>
+                  <button onclick="saveActiveTheory()"
+                    class="bg-brandpurple hover:bg-purple-600 text-white font-bold text-xs py-2 px-4 rounded-lg mt-2 transition duration-150 float-right">
                     Salvar Teoria
                   </button>
                 </div>
@@ -329,43 +373,64 @@
                       <span>📥</span> Inserir Novo Material de Contexto
                     </h4>
                     <div class="flex gap-2 text-xs border-b border-gray-800 pb-2">
-                      <button onclick="switchUploadTab('pdf')" id="uploadTabBtn-pdf" class="upload-tab-btn px-3 py-1.5 rounded-lg font-semibold bg-gray-800 text-white">PDF Uploader</button>
-                      <button onclick="switchUploadTab('text')" id="uploadTabBtn-text" class="upload-tab-btn px-3 py-1.5 rounded-lg font-semibold bg-transparent text-gray-400">Texto Livre</button>
-                      <button onclick="switchUploadTab('url')" id="uploadTabBtn-url" class="upload-tab-btn px-3 py-1.5 rounded-lg font-semibold bg-transparent text-gray-400">Link Web</button>
+                      <button onclick="switchUploadTab('pdf')" id="uploadTabBtn-pdf"
+                        class="upload-tab-btn px-3 py-1.5 rounded-lg font-semibold bg-gray-800 text-white">PDF
+                        Uploader</button>
+                      <button onclick="switchUploadTab('text')" id="uploadTabBtn-text"
+                        class="upload-tab-btn px-3 py-1.5 rounded-lg font-semibold bg-transparent text-gray-400">Texto
+                        Livre</button>
+                      <button onclick="switchUploadTab('url')" id="uploadTabBtn-url"
+                        class="upload-tab-btn px-3 py-1.5 rounded-lg font-semibold bg-transparent text-gray-400">Link
+                        Web</button>
                     </div>
 
                     <!-- PDF Upload Section -->
                     <div id="uploadPanel-pdf" class="upload-panel flex flex-col gap-3">
-                      <div class="border-2 border-dashed border-gray-700/80 hover:border-brandgreen/80 rounded-xl p-6 text-center cursor-pointer transition duration-150 relative bg-gray-800/30">
-                        <input type="file" id="pdfFileInput" accept="application/pdf" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handlePDFSelection()">
+                      <div
+                        class="border-2 border-dashed border-gray-700/80 hover:border-brandgreen/80 rounded-xl p-6 text-center cursor-pointer transition duration-150 relative bg-gray-800/30">
+                        <input type="file" id="pdfFileInput" accept="application/pdf"
+                          class="absolute inset-0 opacity-0 cursor-pointer" onchange="handlePDFSelection()">
                         <span class="text-3xl block mb-2">📄</span>
-                        <p class="text-xs text-gray-300 font-bold" id="pdfFileNameDisplay">Clique ou arraste um arquivo PDF para extração automática de texto</p>
+                        <p class="text-xs text-gray-300 font-bold" id="pdfFileNameDisplay">Clique ou arraste um arquivo
+                          PDF para extração automática de texto</p>
                         <p class="text-[10px] text-gray-500 mt-1">Extração local via PDF.js</p>
                       </div>
-                      <div id="pdfProgressContainer" class="hidden flex items-center gap-3 bg-gray-800 p-3 rounded-lg border border-gray-700">
-                        <div class="animate-spin h-4 w-4 text-brandgreen rounded-full border-2 border-brandgreen border-t-transparent"></div>
+                      <div id="pdfProgressContainer"
+                        class="hidden flex items-center gap-3 bg-gray-800 p-3 rounded-lg border border-gray-700">
+                        <div
+                          class="animate-spin h-4 w-4 text-brandgreen rounded-full border-2 border-brandgreen border-t-transparent">
+                        </div>
                         <span class="text-xs text-gray-300" id="pdfStatusMsg">Processando PDF...</span>
                       </div>
                     </div>
 
                     <!-- Text Upload Section -->
                     <div id="uploadPanel-text" class="upload-panel hidden flex flex-col gap-3">
-                      <input type="text" id="textMaterialName" placeholder="Nome de Exibição do Material (Ex: Resumo Cripto FCC)" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none focus:border-brandgreen">
-                      <textarea id="textMaterialContent" rows="4" placeholder="Cole o texto que servirá de suporte para a geração de questões e redação..." class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-xs text-gray-200 focus:outline-none focus:border-brandgreen"></textarea>
-                      <button onclick="addTextMaterial()" class="bg-brandgreen hover:bg-green-600 text-darkbg font-bold text-xs py-2 px-4 rounded-lg self-end transition duration-150">
+                      <input type="text" id="textMaterialName"
+                        placeholder="Nome de Exibição do Material (Ex: Resumo Cripto FCC)"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none focus:border-brandgreen">
+                      <textarea id="textMaterialContent" rows="4"
+                        placeholder="Cole o texto que servirá de suporte para a geração de questões e redação..."
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-xs text-gray-200 focus:outline-none focus:border-brandgreen"></textarea>
+                      <button onclick="addTextMaterial()"
+                        class="bg-brandgreen hover:bg-green-600 text-darkbg font-bold text-xs py-2 px-4 rounded-lg self-end transition duration-150">
                         Adicionar Material
                       </button>
                     </div>
 
                     <!-- URL Upload Section -->
                     <div id="uploadPanel-url" class="upload-panel hidden flex flex-col gap-3">
-                      <input type="text" id="urlMaterialName" placeholder="Nome de Exibição do Link" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none focus:border-brandgreen">
-                      <select id="urlMaterialType" class="bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none focus:border-brandgreen">
+                      <input type="text" id="urlMaterialName" placeholder="Nome de Exibição do Link"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none focus:border-brandgreen">
+                      <select id="urlMaterialType"
+                        class="bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none focus:border-brandgreen">
                         <option value="web_link">Link Geral (Artigo, Artigo de Lei)</option>
                         <option value="youtube_link">URL do YouTube (Vídeo Aula)</option>
                       </select>
-                      <input type="url" id="urlMaterialData" placeholder="https://exemplo.com/conteudo" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none focus:border-brandgreen">
-                      <button onclick="addURLMaterial()" class="bg-brandgreen hover:bg-green-600 text-darkbg font-bold text-xs py-2 px-4 rounded-lg self-end transition duration-150">
+                      <input type="url" id="urlMaterialData" placeholder="https://exemplo.com/conteudo"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none focus:border-brandgreen">
+                      <button onclick="addURLMaterial()"
+                        class="bg-brandgreen hover:bg-green-600 text-darkbg font-bold text-xs py-2 px-4 rounded-lg self-end transition duration-150">
                         Salvar Link
                       </button>
                     </div>
@@ -377,20 +442,26 @@
 
               <!-- TAB PANEL 2: TUTOR QUESTIONS -->
               <div id="tabPanel-questions" class="workspace-tab-panel hidden flex flex-col gap-6">
-                <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-900/40 p-4 rounded-xl border border-gray-700/50">
+                <div
+                  class="flex flex-wrap items-center justify-between gap-4 bg-gray-900/40 p-4 rounded-xl border border-gray-700/50">
                   <div class="text-xs text-gray-300">
                     <p class="font-bold text-white">Geração Pautada pela Recorrência:</p>
                     <p>O robô irá ler todo o material cumulativo do tópico para gerar 5 questões da banca.</p>
                   </div>
-                  <button id="gerarQuestoesBtn" onclick="generateQuestions()" class="bg-gradient-to-r from-brandpurple to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-extrabold py-2.5 px-6 rounded-xl transition duration-200 shadow-md text-sm">
+                  <button id="gerarQuestoesBtn" onclick="generateQuestions()"
+                    class="bg-gradient-to-r from-brandpurple to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-extrabold py-2.5 px-6 rounded-xl transition duration-200 shadow-md text-sm">
                     Gerar 5 Questões
                   </button>
                 </div>
 
                 <!-- Loading Indicator -->
-                <div id="questionsLoading" class="hidden flex flex-col items-center justify-center py-12 gap-3 text-center">
-                  <div class="animate-spin h-10 w-10 text-brandpurple rounded-full border-4 border-brandpurple border-t-transparent"></div>
-                  <span class="text-sm font-semibold text-gray-300">Inteligência Artificial criando sua prova de fixação...</span>
+                <div id="questionsLoading"
+                  class="hidden flex flex-col items-center justify-center py-12 gap-3 text-center">
+                  <div
+                    class="animate-spin h-10 w-10 text-brandpurple rounded-full border-4 border-brandpurple border-t-transparent">
+                  </div>
+                  <span class="text-sm font-semibold text-gray-300">Inteligência Artificial criando sua prova de
+                    fixação...</span>
                 </div>
 
                 <!-- Questions Container -->
@@ -401,44 +472,58 @@
 
               <!-- TAB PANEL 3: TUTOR ESSAY -->
               <div id="tabPanel-essay" class="workspace-tab-panel hidden flex flex-col gap-6">
-                
+
                 <!-- Guidelines & Configuration Warning -->
-                <div id="essayConfigWarning" class="hidden bg-yellow-900/30 border border-yellow-800 text-yellow-200 p-4 rounded-xl text-xs flex flex-col gap-1.5">
+                <div id="essayConfigWarning"
+                  class="hidden bg-yellow-900/30 border border-yellow-800 text-yellow-200 p-4 rounded-xl text-xs flex flex-col gap-1.5">
                   <span class="font-bold">⚠️ Redação Discursiva Não Configurada</span>
-                  <span>Este concurso não possui configurações de redação salvas. Vá ao painel de cadastro/edição e ative as diretrizes e fórmulas para o robô corretor funcionar.</span>
+                  <span>Este concurso não possui configurações de redação salvas. Vá ao painel de cadastro/edição e
+                    ative as diretrizes e fórmulas para o robô corretor funcionar.</span>
                 </div>
 
                 <div id="essayActiveWorkspace" class="flex flex-col gap-6">
-                  
-                  <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-900/40 p-4 rounded-xl border border-gray-700/50">
+
+                  <div
+                    class="flex flex-wrap items-center justify-between gap-4 bg-gray-900/40 p-4 rounded-xl border border-gray-700/50">
                     <div class="text-xs text-gray-300">
                       <p class="font-bold text-white">Treinamento de Redação Discursiva:</p>
                       <p>Gere um tema localizado (ex: TI no TJPE) usando os tópicos da matéria atual.</p>
                     </div>
                     <div class="flex items-center gap-2">
-                      <button id="gerarTemaRedacaoBtn" onclick="generateEssayTheme()" class="bg-gradient-to-r from-brandpurple to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-2.5 px-5 rounded-xl transition duration-200 shadow-md text-xs uppercase tracking-wide">
+                      <button id="gerarTemaRedacaoBtn" onclick="generateEssayTheme()"
+                        class="bg-gradient-to-r from-brandpurple to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-2.5 px-5 rounded-xl transition duration-200 shadow-md text-xs uppercase tracking-wide">
                         Gerar Tema Técnico
                       </button>
-                      <button id="verEspelhoRedacaoBtn" onclick="showEssayEspelho()" class="hidden bg-gray-700 hover:bg-gray-600 text-white font-bold py-2.5 px-5 rounded-xl transition duration-200 text-xs border border-gray-600">
+                      <button id="verEspelhoRedacaoBtn" onclick="showEssayEspelho()"
+                        class="hidden bg-gray-700 hover:bg-gray-600 text-white font-bold py-2.5 px-5 rounded-xl transition duration-200 text-xs border border-gray-600">
                         Ver Espelho Padrão
                       </button>
                     </div>
                   </div>
 
                   <!-- Loading Theme -->
-                  <div id="essayThemeLoading" class="hidden flex flex-col items-center justify-center py-6 gap-2 text-center">
-                    <div class="animate-spin h-7 w-7 text-brandpurple rounded-full border-3 border-brandpurple border-t-transparent"></div>
-                    <span class="text-xs font-semibold text-gray-400">Gerando tema baseado nas regras de edital...</span>
+                  <div id="essayThemeLoading"
+                    class="hidden flex flex-col items-center justify-center py-6 gap-2 text-center">
+                    <div
+                      class="animate-spin h-7 w-7 text-brandpurple rounded-full border-3 border-brandpurple border-t-transparent">
+                    </div>
+                    <span class="text-xs font-semibold text-gray-400">Gerando tema baseado nas regras de
+                      edital...</span>
                   </div>
 
                   <!-- Active Theme Display -->
-                  <div id="activeThemeContainer" class="hidden bg-gray-900/60 p-5 rounded-xl border border-gray-700 flex flex-col gap-3">
+                  <div id="activeThemeContainer"
+                    class="hidden bg-gray-900/60 p-5 rounded-xl border border-gray-700 flex flex-col gap-3">
                     <div>
-                      <span class="text-[10px] bg-brandpurple/30 text-purple-300 font-bold px-2 py-0.5 rounded border border-brandpurple/40 block w-max uppercase">Tema Proposto pela IA</span>
-                      <h4 class="font-display font-black text-lg text-white mt-1.5" id="essayActiveThemeTitle">Título do Tema</h4>
+                      <span
+                        class="text-[10px] bg-brandpurple/30 text-purple-300 font-bold px-2 py-0.5 rounded border border-brandpurple/40 block w-max uppercase">Tema
+                        Proposto pela IA</span>
+                      <h4 class="font-display font-black text-lg text-white mt-1.5" id="essayActiveThemeTitle">Título do
+                        Tema</h4>
                     </div>
                     <div class="border-t border-gray-800 pt-3 flex flex-col gap-2">
-                      <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Tópicos Obrigatórios de Desenvolvimento:</span>
+                      <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Tópicos Obrigatórios de
+                        Desenvolvimento:</span>
                       <ul class="list-disc list-inside text-sm text-gray-300 space-y-1.5" id="essayActiveThemeTopics">
                         <!-- Topics -->
                       </ul>
@@ -446,12 +531,16 @@
                   </div>
 
                   <!-- Standard response guide container (Espelho) -->
-                  <div id="essayEspelhoContainer" class="hidden bg-gray-900/80 p-5 rounded-xl border border-brandgreen/30 flex flex-col gap-2">
+                  <div id="essayEspelhoContainer"
+                    class="hidden bg-gray-900/80 p-5 rounded-xl border border-brandgreen/30 flex flex-col gap-2">
                     <div class="flex items-center justify-between border-b border-gray-800 pb-2">
-                      <span class="text-xs font-bold text-brandgreen flex items-center gap-1"><span>✨</span> Espelho Padrão de Resposta (Banca)</span>
-                      <button onclick="document.getElementById('essayEspelhoContainer').classList.add('hidden')" class="text-gray-400 hover:text-white text-xs">Ocultar</button>
+                      <span class="text-xs font-bold text-brandgreen flex items-center gap-1"><span>✨</span> Espelho
+                        Padrão de Resposta (Banca)</span>
+                      <button onclick="document.getElementById('essayEspelhoContainer').classList.add('hidden')"
+                        class="text-gray-400 hover:text-white text-xs">Ocultar</button>
                     </div>
-                    <div class="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap max-h-[300px] overflow-y-auto" id="essayEspelhoText">
+                    <div class="text-xs text-gray-300 leading-relaxed whitespace-pre-wrap max-h-[300px] overflow-y-auto"
+                      id="essayEspelhoText">
                       <!-- Content from API -->
                     </div>
                   </div>
@@ -465,33 +554,45 @@
 
                     <div class="flex border border-gray-700 rounded-xl overflow-hidden shadow-inner bg-gray-900">
                       <!-- Line indicators -->
-                      <div id="essayLineGutters" class="w-10 bg-gray-900 text-gray-600 text-xs font-mono select-none text-right py-[7px] pr-2.5 border-r border-gray-800 flex flex-col gap-[30px]">
+                      <div id="essayLineGutters"
+                        class="w-10 bg-gray-900 text-gray-600 text-xs font-mono select-none text-right py-[7px] pr-2.5 border-r border-gray-800 flex flex-col gap-[30px]">
                         <!-- Populated by JS up to max_lines -->
                       </div>
-                      
+
                       <!-- Main editor -->
-                      <textarea id="essayEditor" oninput="updateLineCount()" placeholder="Digite ou cole sua redação aqui..." class="lined-paper flex-grow bg-transparent p-4 outline-none border-none min-h-[450px]" style="line-height: 30px;"></textarea>
+                      <textarea id="essayEditor" oninput="updateLineCount()"
+                        placeholder="Digite ou cole sua redação aqui..."
+                        class="lined-paper flex-grow bg-transparent p-4 outline-none border-none min-h-[450px]"
+                        style="line-height: 30px;"></textarea>
                     </div>
 
-                    <button id="submeterRedacaoBtn" onclick="submitEssayForCorrection()" class="bg-gradient-to-r from-brandgreen to-green-600 hover:from-green-600 hover:to-green-700 text-darkbg font-black py-3 px-8 rounded-xl mt-4 self-center shadow-lg transition duration-200 flex items-center gap-2">
+                    <button id="submeterRedacaoBtn" onclick="submitEssayForCorrection()"
+                      class="bg-gradient-to-r from-brandgreen to-green-600 hover:from-green-600 hover:to-green-700 text-darkbg font-black py-3 px-8 rounded-xl mt-4 self-center shadow-lg transition duration-200 flex items-center gap-2">
                       <span>📝</span> Submeter Redação para Correção Oficial
                     </button>
                   </div>
 
                   <!-- Loading Correction -->
-                  <div id="essayCorrectionLoading" class="hidden flex flex-col items-center justify-center py-12 gap-3 text-center">
-                    <div class="animate-spin h-10 w-10 text-brandgreen rounded-full border-4 border-brandgreen border-t-transparent"></div>
-                    <span class="text-sm font-semibold text-gray-300">Robô Corretor lendo seu texto e aplicando a matemática do edital...</span>
+                  <div id="essayCorrectionLoading"
+                    class="hidden flex flex-col items-center justify-center py-12 gap-3 text-center">
+                    <div
+                      class="animate-spin h-10 w-10 text-brandgreen rounded-full border-4 border-brandgreen border-t-transparent">
+                    </div>
+                    <span class="text-sm font-semibold text-gray-300">Robô Corretor lendo seu texto e aplicando a
+                      matemática do edital...</span>
                   </div>
 
                   <!-- Correction Results -->
                   <div id="essayCorrectionResults" class="hidden flex flex-col gap-6 border-t border-gray-700 pt-6">
-                    
+
                     <!-- Circular Score & Summary card -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center bg-gray-900/60 p-6 rounded-2xl border border-gray-700">
+                    <div
+                      class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center bg-gray-900/60 p-6 rounded-2xl border border-gray-700">
                       <div class="flex flex-col items-center justify-center text-center">
-                        <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">Nota Final Computada</span>
-                        <div class="w-32 h-32 rounded-full border-4 border-brandgreen flex flex-col items-center justify-center shadow-lg bg-gray-800/80">
+                        <span class="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">Nota Final
+                          Computada</span>
+                        <div
+                          class="w-32 h-32 rounded-full border-4 border-brandgreen flex flex-col items-center justify-center shadow-lg bg-gray-800/80">
                           <span class="text-3xl font-black text-white" id="correctScoreVal">0.00</span>
                           <span class="text-xs text-gray-500 font-bold" id="correctMaxScoreVal">/ 100</span>
                         </div>
@@ -501,12 +602,15 @@
                         <h4 class="font-display font-bold text-white text-lg flex items-center gap-1.5">
                           <span>🔍</span> Detalhamento do Cálculo (Fórmula Oficial)
                         </h4>
-                        <div class="bg-gray-950 p-4 rounded-lg border border-gray-800 text-xs font-mono space-y-1.5 text-gray-300">
-                          <div>Fórmula Aplicada: <span class="text-brandorange" id="resFormulaType">Cebraspe</span></div>
+                        <div
+                          class="bg-gray-950 p-4 rounded-lg border border-gray-800 text-xs font-mono space-y-1.5 text-gray-300">
+                          <div>Fórmula Aplicada: <span class="text-brandorange" id="resFormulaType">Cebraspe</span>
+                          </div>
                           <div>TLE (Linhas Efetivas): <span class="text-white" id="resTLE">0</span></div>
                           <div>Nota de Conteúdo (Macro + Estru): <span class="text-white" id="resNC">0.00</span></div>
                           <div>Número de Desvios (NE): <span class="text-white" id="resNE">0</span></div>
-                          <div class="border-t border-gray-800 pt-1.5 font-bold text-sm flex justify-between items-center text-brandgreen">
+                          <div
+                            class="border-t border-gray-800 pt-1.5 font-bold text-sm flex justify-between items-center text-brandgreen">
                             <span>FÓRMULA APLICADA:</span>
                             <span id="resFormulaMath">NF = NC - (2 * (NE / TLE))</span>
                           </div>
@@ -519,7 +623,7 @@
                       <!-- Macro critiques -->
                       <div class="bg-gray-900/40 p-5 rounded-xl border border-gray-700 flex flex-col gap-3">
                         <h5 class="font-bold text-white text-sm">Critério Macroestrutural (Conteúdo & Coesão)</h5>
-                        
+
                         <div class="text-xs text-gray-300 flex flex-col gap-2">
                           <div class="bg-gray-800/50 p-3 rounded border border-gray-700/50">
                             <span class="font-bold text-brandpurple block mb-1">Nota de Conteúdo:</span>
@@ -539,7 +643,7 @@
                       <!-- Micro critiques (Error table) -->
                       <div class="bg-gray-900/40 p-5 rounded-xl border border-gray-700 flex flex-col gap-3">
                         <h5 class="font-bold text-white text-sm">Desvios Microestruturais (Ortografia/Gramática)</h5>
-                        
+
                         <div class="overflow-x-auto">
                           <table class="w-full text-xs text-left text-gray-300">
                             <thead class="bg-gray-800 text-[10px] text-gray-400 font-bold uppercase tracking-wider">
@@ -563,7 +667,8 @@
                     </div>
 
                     <!-- Final Verdict -->
-                    <div class="bg-gradient-to-r from-gray-800 to-gray-700/30 p-5 rounded-xl border border-gray-700 text-sm">
+                    <div
+                      class="bg-gradient-to-r from-gray-800 to-gray-700/30 p-5 rounded-xl border border-gray-700 text-sm">
                       <span class="font-bold text-white block mb-1">Conselho / Veredicto Final:</span>
                       <p id="resVerdict" class="text-gray-300 leading-relaxed text-justify"></p>
                     </div>
@@ -583,55 +688,65 @@
       </section>
 
       <!-- D. SCREEN: WIZARD DE CONCURSO -->
-      <section id="screenWizard" class="hidden max-w-4xl mx-auto w-full bg-gray-800/80 p-8 rounded-2xl border border-gray-700 shadow-2xl flex flex-col gap-6">
-        
+      <section id="screenWizard"
+        class="hidden max-w-4xl mx-auto w-full bg-gray-800/80 p-8 rounded-2xl border border-gray-700 shadow-2xl flex flex-col gap-6">
+
         <!-- Header & Steps stepper -->
         <div class="flex items-center justify-between border-b border-gray-700 pb-4">
           <div>
             <h2 class="font-display font-black text-xl text-white" id="wizardTitle">Cadastrar Novo Concurso</h2>
             <p class="text-xs text-gray-400">Siga as 4 etapas para cadastrar o edital e parametrizar a IA</p>
           </div>
-          <button onclick="closeWizard()" class="text-xs text-gray-400 hover:text-white font-bold bg-gray-700 py-1 px-3 rounded-lg border border-gray-600 transition">Cancelar ✖️</button>
+          <button onclick="closeWizard()"
+            class="text-xs text-gray-400 hover:text-white font-bold bg-gray-700 py-1 px-3 rounded-lg border border-gray-600 transition">Cancelar
+            ✖️</button>
         </div>
 
         <!-- Stepper Indicator -->
         <div class="flex items-center justify-between max-w-md mx-auto w-full text-xs font-bold text-gray-500 my-2">
           <div class="flex flex-col items-center gap-1 active-step" id="stepInd-1">
-            <span class="w-8 h-8 rounded-full border-2 border-brandgreen flex items-center justify-center text-brandgreen" id="stepCircle-1">1</span>
+            <span
+              class="w-8 h-8 rounded-full border-2 border-brandgreen flex items-center justify-center text-brandgreen"
+              id="stepCircle-1">1</span>
             <span>Edital</span>
           </div>
           <div class="flex-grow h-0.5 bg-gray-700 mx-2 mb-8" id="stepLine-1"></div>
           <div class="flex flex-col items-center gap-1" id="stepInd-2">
-            <span class="w-8 h-8 rounded-full border-2 border-gray-700 flex items-center justify-center" id="stepCircle-2">2</span>
+            <span class="w-8 h-8 rounded-full border-2 border-gray-700 flex items-center justify-center"
+              id="stepCircle-2">2</span>
             <span>Estilo</span>
           </div>
           <div class="flex-grow h-0.5 bg-gray-700 mx-2 mb-8" id="stepLine-2"></div>
           <div class="flex flex-col items-center gap-1" id="stepInd-3">
-            <span class="w-8 h-8 rounded-full border-2 border-gray-700 flex items-center justify-center" id="stepCircle-3">3</span>
+            <span class="w-8 h-8 rounded-full border-2 border-gray-700 flex items-center justify-center"
+              id="stepCircle-3">3</span>
             <span>Matérias</span>
           </div>
           <div class="flex-grow h-0.5 bg-gray-700 mx-2 mb-8" id="stepLine-3"></div>
           <div class="flex flex-col items-center gap-1" id="stepInd-4">
-            <span class="w-8 h-8 rounded-full border-2 border-gray-700 flex items-center justify-center" id="stepCircle-4">4</span>
+            <span class="w-8 h-8 rounded-full border-2 border-gray-700 flex items-center justify-center"
+              id="stepCircle-4">4</span>
             <span>Redação</span>
           </div>
         </div>
 
         <!-- STEP PANELS -->
         <div class="min-h-[300px] flex flex-col justify-center">
-          
+
           <!-- STEP 1: CONTEST BASIC INFO -->
           <div id="wizardStep-1" class="wizard-step-panel flex flex-col gap-4">
             <h3 class="font-display font-bold text-lg text-white mb-2">Dados do Certame</h3>
-            
+
             <div class="flex flex-col gap-1.5">
               <label class="text-xs font-bold text-gray-400 uppercase tracking-wide">Nome do Concurso / Edital</label>
-              <input type="text" id="wizContestName" placeholder="Ex: Analista Judiciário - TJPE 2026" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-gray-200 focus:outline-none focus:border-brandgreen">
+              <input type="text" id="wizContestName" placeholder="Ex: Analista Judiciário - TJPE 2026"
+                class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-gray-200 focus:outline-none focus:border-brandgreen">
             </div>
 
             <div class="flex flex-col gap-1.5">
               <label class="text-xs font-bold text-gray-400 uppercase tracking-wide">Banca Examinadora</label>
-              <select id="wizContestBoard" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-gray-200 focus:outline-none focus:border-brandgreen">
+              <select id="wizContestBoard"
+                class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-gray-200 focus:outline-none focus:border-brandgreen">
                 <option value="IBFC">IBFC</option>
                 <option value="Cebraspe">Cebraspe</option>
                 <option value="FGV">FGV</option>
@@ -648,16 +763,22 @@
             <p class="text-xs text-gray-400">Defina o formato de resposta das questões objetivas de treinamento.</p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-              <label class="border-2 border-brandpurple/50 bg-purple-950/20 hover:bg-purple-950/30 p-5 rounded-2xl cursor-pointer flex items-center gap-4 transition text-left" id="wizStyleLabel-multi">
-                <input type="radio" name="wizExamStyle" value="multipla_escolha" checked class="h-4 w-4 text-brandpurple focus:ring-0" onchange="toggleWizStyleUI()">
+              <label
+                class="border-2 border-brandpurple/50 bg-purple-950/20 hover:bg-purple-950/30 p-5 rounded-2xl cursor-pointer flex items-center gap-4 transition text-left"
+                id="wizStyleLabel-multi">
+                <input type="radio" name="wizExamStyle" value="multipla_escolha" checked
+                  class="h-4 w-4 text-brandpurple focus:ring-0" onchange="toggleWizStyleUI()">
                 <div>
                   <span class="font-display font-bold text-sm block text-white">Múltipla Escolha</span>
                   <span class="text-xs text-gray-400">Alternativas A, B, C, D ou E para seleção.</span>
                 </div>
               </label>
 
-              <label class="border border-gray-700 bg-gray-900/50 hover:bg-gray-800/50 p-5 rounded-2xl cursor-pointer flex items-center gap-4 transition text-left" id="wizStyleLabel-ce">
-                <input type="radio" name="wizExamStyle" value="certo_errado" class="h-4 w-4 text-brandpurple focus:ring-0" onchange="toggleWizStyleUI()">
+              <label
+                class="border border-gray-700 bg-gray-900/50 hover:bg-gray-800/50 p-5 rounded-2xl cursor-pointer flex items-center gap-4 transition text-left"
+                id="wizStyleLabel-ce">
+                <input type="radio" name="wizExamStyle" value="certo_errado"
+                  class="h-4 w-4 text-brandpurple focus:ring-0" onchange="toggleWizStyleUI()">
                 <div>
                   <span class="font-display font-bold text-sm block text-white">Certo / Errado</span>
                   <span class="text-xs text-gray-400">Estilo Cebraspe, onde julga-se cada item.</span>
@@ -668,16 +789,20 @@
 
           <!-- STEP 3: SUBJECTS & TOPICS (ITERATIVE) -->
           <div id="wizardStep-3" class="wizard-step-panel hidden flex flex-col gap-4">
-            <h3 class="font-display font-bold text-lg text-white mb-2">Cadastrar Conteúdo Programático (Matérias & Assuntos)</h3>
-            <p class="text-xs text-gray-400">Insira as matérias e seus tópicos associados. Você pode adicionar a taxa de relevância/recorrência em prova baseada no Raio-X de estatísticas da banca.</p>
+            <h3 class="font-display font-bold text-lg text-white mb-2">Cadastrar Conteúdo Programático (Matérias &
+              Assuntos)</h3>
+            <p class="text-xs text-gray-400">Insira as matérias e seus tópicos associados. Você pode adicionar a taxa de
+              relevância/recorrência em prova baseada no Raio-X de estatísticas da banca.</p>
 
             <!-- Subject Input Row -->
             <div class="bg-gray-900/40 p-4 rounded-xl border border-gray-700 flex flex-wrap gap-2.5 items-end">
               <div class="flex-grow min-w-[200px] flex flex-col gap-1.5">
                 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Nome da Matéria</label>
-                <input type="text" id="wizSubjectName" placeholder="Ex: Banco de Dados" class="bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs text-gray-200 focus:outline-none focus:border-brandgreen">
+                <input type="text" id="wizSubjectName" placeholder="Ex: Banco de Dados"
+                  class="bg-gray-800 border border-gray-700 rounded-lg p-2 text-xs text-gray-200 focus:outline-none focus:border-brandgreen">
               </div>
-              <button type="button" onclick="wizAddSubject()" class="bg-brandgreen hover:bg-green-600 text-darkbg font-bold text-xs py-2.5 px-4 rounded-lg transition duration-150">
+              <button type="button" onclick="wizAddSubject()"
+                class="bg-brandgreen hover:bg-green-600 text-darkbg font-bold text-xs py-2.5 px-4 rounded-lg transition duration-150">
                 + Adicionar Matéria
               </button>
             </div>
@@ -694,17 +819,20 @@
               <h3 class="font-display font-bold text-lg text-white">Configurações de Redação Discursiva</h3>
               <label class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" id="wizEssayEnabled" class="sr-only peer" onchange="toggleWizardEssayFields()">
-                <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brandgreen"></div>
+                <div
+                  class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brandgreen">
+                </div>
                 <span class="ml-3 text-xs font-bold text-gray-300 uppercase">Habilitar Redação</span>
               </label>
             </div>
 
             <div id="wizEssayFieldsContainer" class="hidden flex flex-col gap-4 border-t border-gray-700 pt-4">
-              
+
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="flex flex-col gap-1">
                   <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Tipo de Redação</label>
-                  <select id="wizEssayType" class="bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none">
+                  <select id="wizEssayType"
+                    class="bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none">
                     <option value="Dissertativa-Argumentativa">Dissertativa-Argumentativa</option>
                     <option value="Estudo de Caso">Estudo de Caso</option>
                     <option value="Questão Discursiva">Questão Discursiva</option>
@@ -712,11 +840,15 @@
                 </div>
                 <div class="flex flex-col gap-1">
                   <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Limite de Linhas</label>
-                  <input type="number" id="wizEssayMaxLines" value="30" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-200 focus:outline-none">
+                  <input type="number" id="wizEssayMaxLines" value="30"
+                    class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-200 focus:outline-none">
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide font-black text-brandorange">Fórmula Matemática</label>
-                  <select id="wizEssayFormulaType" onchange="updateWizFormulaExplanation()" class="bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none">
+                  <label
+                    class="text-[10px] font-bold text-gray-400 uppercase tracking-wide font-black text-brandorange">Fórmula
+                    Matemática</label>
+                  <select id="wizEssayFormulaType" onchange="updateWizFormulaExplanation()"
+                    class="bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-xs text-gray-200 focus:outline-none">
                     <option value="cebraspe">Cebraspe (NF = NC - K * NE/TLE)</option>
                     <option value="fgv">FGV (NF = NC - Desconto Direto)</option>
                     <option value="fcc">FCC (NF = NC - Desconto Direto)</option>
@@ -727,58 +859,77 @@
 
               <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="flex flex-col gap-1">
-                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Pontuação Máxima (Macro)</label>
-                  <input type="number" id="wizEssayMaxMacro" value="100.00" step="0.01" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-200">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Pontuação Máxima
+                    (Macro)</label>
+                  <input type="number" id="wizEssayMaxMacro" value="100.00" step="0.01"
+                    class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-200">
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Pontuação Estrutura Máx</label>
-                  <input type="number" id="wizEssayMaxStructure" value="30.00" step="0.01" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-200">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Pontuação Estrutura
+                    Máx</label>
+                  <input type="number" id="wizEssayMaxStructure" value="30.00" step="0.01"
+                    class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-200">
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Pontuação Conteúdo Máx</label>
-                  <input type="number" id="wizEssayMaxContent" value="70.00" step="0.01" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-200">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Pontuação Conteúdo
+                    Máx</label>
+                  <input type="number" id="wizEssayMaxContent" value="70.00" step="0.01"
+                    class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-200">
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Multiplicador de Erro (K)</label>
-                  <input type="number" id="wizEssayMultiplier" value="2.00" step="0.01" class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-200">
+                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Multiplicador de Erro
+                    (K)</label>
+                  <input type="number" id="wizEssayMultiplier" value="2.00" step="0.01"
+                    class="bg-gray-900 border border-gray-700 rounded-lg p-2 text-xs text-gray-200">
                 </div>
               </div>
 
               <div class="flex flex-col gap-1.5">
-                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Explicação da Fórmula de Correção</label>
-                <input type="text" id="wizEssayFormulaExplanation" value="NF = NC - (K * (NE / TLE))" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-xs text-gray-200 focus:outline-none">
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Explicação da Fórmula de
+                  Correção</label>
+                <input type="text" id="wizEssayFormulaExplanation" value="NF = NC - (K * (NE / TLE))"
+                  class="w-full bg-gray-900 border border-gray-700 rounded-xl p-2.5 text-xs text-gray-200 focus:outline-none">
               </div>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-1">
-                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Regras/Diretrizes do Edital (Colado)</label>
-                  <textarea id="wizEssayGuidelines" rows="3" placeholder="Diretrizes copiadas do edital do concurso..." class="bg-gray-900 border border-gray-700 rounded-xl p-3 text-xs text-gray-200 focus:outline-none"></textarea>
+                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Regras/Diretrizes do Edital
+                    (Colado)</label>
+                  <textarea id="wizEssayGuidelines" rows="3" placeholder="Diretrizes copiadas do edital do concurso..."
+                    class="bg-gray-900 border border-gray-700 rounded-xl p-3 text-xs text-gray-200 focus:outline-none"></textarea>
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Observações Complementares</label>
-                  <textarea id="wizEssayNotes" rows="3" placeholder="Observações de estudos..." class="bg-gray-900 border border-gray-700 rounded-xl p-3 text-xs text-gray-200 focus:outline-none"></textarea>
+                  <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Observações
+                    Complementares</label>
+                  <textarea id="wizEssayNotes" rows="3" placeholder="Observações de estudos..."
+                    class="bg-gray-900 border border-gray-700 rounded-xl p-3 text-xs text-gray-200 focus:outline-none"></textarea>
                 </div>
               </div>
 
               <!-- Micro Deductions Config -->
               <div class="bg-gray-900/60 p-4 rounded-xl border border-gray-800 flex flex-col gap-3">
-                <span class="text-xs font-bold text-white block">Taxas de Dedução de Erros Microestruturais (JSON configurável)</span>
+                <span class="text-xs font-bold text-white block">Taxas de Dedução de Erros Microestruturais (JSON
+                  configurável)</span>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                   <div>
                     <label class="block text-[10px] text-gray-400 mb-1">Ortografia / Grafia</label>
-                    <input type="number" id="wizDeductSpelling" value="0.20" step="0.01" class="w-full bg-gray-800 border border-gray-750 p-2 rounded">
+                    <input type="number" id="wizDeductSpelling" value="0.20" step="0.01"
+                      class="w-full bg-gray-800 border border-gray-750 p-2 rounded">
                   </div>
                   <div>
                     <label class="block text-[10px] text-gray-400 mb-1">Gramática / Morfo</label>
-                    <input type="number" id="wizDeductGrammar" value="0.30" step="0.01" class="w-full bg-gray-800 border border-gray-750 p-2 rounded">
+                    <input type="number" id="wizDeductGrammar" value="0.30" step="0.01"
+                      class="w-full bg-gray-800 border border-gray-750 p-2 rounded">
                   </div>
                   <div>
                     <label class="block text-[10px] text-gray-400 mb-1">Sintaxe / Frase</label>
-                    <input type="number" id="wizDeductSyntax" value="0.30" step="0.01" class="w-full bg-gray-800 border border-gray-750 p-2 rounded">
+                    <input type="number" id="wizDeductSyntax" value="0.30" step="0.01"
+                      class="w-full bg-gray-800 border border-gray-750 p-2 rounded">
                   </div>
                   <div>
                     <label class="block text-[10px] text-gray-400 mb-1">Vocabulário / Precisão</label>
-                    <input type="number" id="wizDeductVocabulary" value="0.20" step="0.01" class="w-full bg-gray-800 border border-gray-750 p-2 rounded">
+                    <input type="number" id="wizDeductVocabulary" value="0.20" step="0.01"
+                      class="w-full bg-gray-800 border border-gray-750 p-2 rounded">
                   </div>
                 </div>
               </div>
@@ -790,8 +941,10 @@
 
         <!-- Wizard Navigation Footer -->
         <div class="flex items-center justify-between border-t border-gray-700 pt-4">
-          <button id="wizBackBtn" onclick="wizardPrev()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-5 rounded-lg text-sm transition">Voltar</button>
-          <button id="wizNextBtn" onclick="wizardNext()" class="bg-brandgreen hover:bg-green-600 text-darkbg font-extrabold py-2.5 px-6 rounded-lg text-sm transition">Próximo</button>
+          <button id="wizBackBtn" onclick="wizardPrev()"
+            class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-5 rounded-lg text-sm transition">Voltar</button>
+          <button id="wizNextBtn" onclick="wizardNext()"
+            class="bg-brandgreen hover:bg-green-600 text-darkbg font-extrabold py-2.5 px-6 rounded-lg text-sm transition">Próximo</button>
         </div>
 
       </section>
@@ -821,13 +974,13 @@
       init() {
         // Credenciais permanentes do projeto "Estudos" no Supabase
         const url = "https://xuzangohhcohrbaipiik.supabase.co";
-        
+
         // =========================================================================
         // IMPORTANTE: Insira sua chave anon do Supabase na constante abaixo.
         // Se a chave for mantida como 'SUA_SUPABASE_ANON_KEY_AQUI', a plataforma rodará em modo Mock.
         // =========================================================================
-        const key = "SUA_SUPABASE_ANON_KEY_AQUI"; 
-        
+        const key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1emFuZ29oaGNvaHJiYWlwaWlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMzMzOTEsImV4cCI6MjA5NTcwOTM5MX0.sXFrfichNHrZbneDZqjBEBRq9_q-O6B67Bdq0eswMGU";
+
         if (url && key && key !== "SUA_SUPABASE_ANON_KEY_AQUI" && window.supabase) {
           try {
             this.supabaseClient = window.supabase.createClient(url, key);
@@ -1065,11 +1218,11 @@
           const activeSubjects = db.subjects.filter(s => s.contest_id === contestId);
           const subjIds = activeSubjects.map(s => s.id);
           db.subjects = db.subjects.filter(s => s.contest_id !== contestId);
-          
+
           const activeTopics = db.topics.filter(t => subjIds.includes(t.subject_id));
           const topicIds = activeTopics.map(t => t.id);
           db.topics = db.topics.filter(t => !subjIds.includes(t.subject_id));
-          
+
           db.topic_recurrence_stats = db.topic_recurrence_stats.filter(s => !topicIds.includes(s.topic_id));
           db.study_materials = db.study_materials.filter(m => !topicIds.includes(m.topic_id));
           db.essay_configs = db.essay_configs.filter(e => e.contest_id !== contestId);
@@ -1077,9 +1230,9 @@
           const essayConfigs = db.essay_configs.filter(e => e.contest_id === contestId);
           const ecIds = essayConfigs.map(e => e.id);
           db.user_essays = db.user_essays.filter(u => !ecIds.includes(u.essay_config_id));
-          
+
           db.user_progress = db.user_progress.filter(p => !topicIds.includes(p.topic_id));
-          
+
           this.saveMockDB(db);
         }
       }
@@ -1300,7 +1453,7 @@
       async getUserEssays(contestId) {
         const config = await this.getEssayConfig(contestId);
         if (!config) return [];
-        
+
         if (this.useSupabase) {
           const { data, error } = await this.supabaseClient.from('user_essays').select('*').eq('user_id', this.userId).eq('essay_config_id', config.id).order('submitted_at', { ascending: true });
           if (error) throw error;
@@ -1358,7 +1511,7 @@
           const { data: existing, error: selectErr } = await this.supabaseClient.from('user_progress').select('*').eq('user_id', this.userId).eq('topic_id', topicId).maybeSingle();
           let correct = existing?.correct_count || 0;
           let incorrect = existing?.incorrect_count || 0;
-          
+
           if (isCorrect) correct++;
           else incorrect++;
 
@@ -1369,7 +1522,7 @@
             incorrect_count: incorrect,
             last_played: new Date().toISOString()
           }, { onConflict: 'user_id,topic_id' }).select().single();
-          
+
           if (error) throw error;
           return data;
         } else {
@@ -1403,7 +1556,7 @@
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
       toast.className = `p-4 rounded-xl shadow-lg border text-xs font-bold text-white transition-all duration-300 transform translate-x-20 opacity-0 flex items-center gap-2 pointer-events-auto max-w-sm cursor-pointer`;
-      
+
       if (type === 'success') {
         toast.className += ' bg-emerald-900/90 border-emerald-500 text-emerald-200';
         toast.innerHTML = `<span>🟢</span> ${message}`;
@@ -1416,7 +1569,7 @@
       }
 
       container.appendChild(toast);
-      
+
       // Animate in
       setTimeout(() => {
         toast.classList.remove('translate-x-20', 'opacity-0');
@@ -1504,7 +1657,7 @@
       document.getElementById('screenDashboard').classList.add('hidden');
       document.getElementById('screenStudyHub').classList.add('hidden');
       document.getElementById('screenWizard').classList.add('hidden');
-      
+
       document.getElementById(screenId).classList.remove('hidden');
     }
 
@@ -1518,7 +1671,7 @@
       document.getElementById('wizContestBoard').value = 'IBFC';
       document.getElementById('wizEssayEnabled').checked = false;
       document.getElementById('wizSubjectsList').innerHTML = '';
-      
+
       // Default essay setup
       document.getElementById('wizEssayType').value = 'Dissertativa-Argumentativa';
       document.getElementById('wizEssayMaxLines').value = 30;
@@ -1632,7 +1785,7 @@
       const type = document.getElementById('wizEssayFormulaType').value;
       const expField = document.getElementById('wizEssayFormulaExplanation');
       const multField = document.getElementById('wizEssayMultiplier');
-      
+
       if (type === 'cebraspe') {
         expField.value = "NF = NC - (K * (NE / TLE))";
         multField.value = "2.00";
@@ -1691,7 +1844,7 @@
           percentage: recVal,
           notes
         });
-        
+
         // Clear
         inputTitle.value = '';
         inputRec.value = '0.00';
@@ -1720,7 +1873,7 @@
       wizSubjects.forEach(s => {
         const item = document.createElement('div');
         item.className = "bg-gray-900 border border-gray-700 rounded-xl p-4 flex flex-col gap-3";
-        
+
         let topicsHTML = '';
         s.topics.forEach(t => {
           topicsHTML += `
@@ -1843,9 +1996,9 @@
       contestsList.forEach(c => {
         const item = document.createElement('div');
         const isActive = activeContest && activeContest.id === c.id;
-        
+
         item.className = `group flex items-center justify-between p-3 rounded-xl cursor-pointer transition duration-150 border text-left ${isActive ? 'bg-gray-850 border-brandgreen/50 text-white' : 'bg-gray-900/60 border-gray-800 text-gray-400 hover:bg-gray-800/40 hover:text-white'}`;
-        
+
         item.innerHTML = `
           <div onclick="selectContest('${c.id}')" class="flex-grow">
             <span class="font-display font-bold text-xs uppercase text-brandorange">${c.board}</span>
@@ -1893,7 +2046,7 @@
       // 1. Renderizar Árvore de Matérias/Assuntos no Dashboard
       const subjects = await db.getSubjects(activeContest.id);
       document.getElementById('dashSubjectsCount').textContent = `${subjects.length} Matérias`;
-      
+
       const listContainer = document.getElementById('dashMatériasContainer');
       listContainer.innerHTML = '';
 
@@ -1913,20 +2066,20 @@
         const topics = await db.getTopics(s.id);
         const item = document.createElement('div');
         item.className = "bg-gray-900/40 p-4 rounded-xl border border-gray-800 flex flex-col gap-2.5 text-left";
-        
+
         let topicsHTML = '';
         for (let t of topics) {
           const rec = await db.getTopicRecurrence(t.id);
           const prog = progressList.find(p => p.topic_id === t.id);
           const correct = prog?.correct_count || 0;
           const incorrect = prog?.incorrect_count || 0;
-          
+
           totalCorrectSum += correct;
           totalIncorrectSum += incorrect;
 
           const totalPlayed = correct + incorrect;
           const accuracy = totalPlayed > 0 ? Math.round((correct / totalPlayed) * 100) : 0;
-          
+
           topicsHTML += `
             <div class="flex flex-wrap items-center justify-between gap-2 bg-gray-950/60 p-3 rounded-lg border border-gray-850 hover:border-gray-700 transition">
               <div class="flex-grow">
@@ -1972,9 +2125,9 @@
       // A. Gráfico de Questões (Pizza / Rosca)
       const ctxQ = document.getElementById('questionsStatsChart').getContext('2d');
       if (questionsChartInstance) questionsChartInstance.destroy();
-      
+
       const noData = correct === 0 && incorrect === 0;
-      
+
       questionsChartInstance = new Chart(ctxQ, {
         type: 'doughnut',
         data: {
@@ -2004,7 +2157,7 @@
       if (essayChartInstance) essayChartInstance.destroy();
 
       const essays = await db.getUserEssays(activeContest.id);
-      
+
       const labels = essays.map((e, idx) => `Envio ${idx + 1}`);
       const scores = essays.map(e => e.score);
 
@@ -2058,7 +2211,7 @@
     async function goToStudyHub() {
       if (!activeContest) return;
       await renderStudyAccordion();
-      
+
       // Select first subject/topic if none active
       if (activeTopic) {
         await selectTopicForStudy(activeSubject.id, activeTopic.id);
@@ -2084,12 +2237,12 @@
         const topics = await db.getTopics(s.id);
         const subjDiv = document.createElement('div');
         subjDiv.className = "flex flex-col gap-1";
-        
+
         let topicsHTML = '';
         topics.forEach(t => {
           const isSelected = activeTopic && activeTopic.id === t.id;
           topicsHTML += `
-            <button onclick="selectTopicForStudy('${s.id}', '${t.id}')" class="w-full text-left py-2 px-3 rounded-lg text-xs transition border flex items-center justify-between ${isSelected ? 'bg-brandpurple border-brandpurple text-white font-bold' : 'bg-gray-900/60 border-gray-800 text-gray-400 hover:bg-gray-850 hover:text-white' }">
+            <button onclick="selectTopicForStudy('${s.id}', '${t.id}')" class="w-full text-left py-2 px-3 rounded-lg text-xs transition border flex items-center justify-between ${isSelected ? 'bg-brandpurple border-brandpurple text-white font-bold' : 'bg-gray-900/60 border-gray-800 text-gray-400 hover:bg-gray-850 hover:text-white'}">
               <span class="truncate pr-1">📖 ${t.title}</span>
               <span class="shrink-0 text-[9px] bg-gray-850 text-brandorange font-black px-1.5 py-0.2 rounded border border-gray-700/60 font-mono">X-Ray</span>
             </button>
@@ -2109,7 +2262,7 @@
     async function selectTopicForStudy(subjectId, topicId) {
       const subjects = await db.getSubjects(activeContest.id);
       activeSubject = subjects.find(s => s.id === subjectId);
-      
+
       const topics = await db.getTopics(subjectId);
       activeTopic = topics.find(t => t.id === topicId);
 
@@ -2122,7 +2275,7 @@
 
       document.getElementById('topicActiveSubject').textContent = activeSubject.name;
       document.getElementById('topicActiveTitle').textContent = activeTopic.title;
-      
+
       if (activeTopicStats) {
         document.getElementById('topicActiveRecPercentage').textContent = `${activeTopicStats.recurrence_percentage}%`;
         document.getElementById('topicActiveNotes').textContent = activeTopicStats.notes || 'Sem observações adicionais.';
@@ -2177,9 +2330,9 @@
       const maxLines = await getEssayLinesLimit();
       const gutter = document.getElementById('essayLineGutters');
       gutter.innerHTML = '';
-      
+
       // Calculate height dynamically
-      for(let i = 1; i <= maxLines; i++) {
+      for (let i = 1; i <= maxLines; i++) {
         const span = document.createElement('div');
         span.className = "h-[30px] flex items-center justify-end font-mono";
         span.textContent = i;
@@ -2191,20 +2344,20 @@
       const textarea = document.getElementById('essayEditor');
       const lines = textarea.value.split('\n');
       const linesLimit = parseInt(document.getElementById('essayLinesLimitLabel').textContent) || 30;
-      
+
       // Limit to max lines
       if (lines.length > linesLimit) {
         textarea.value = lines.slice(0, linesLimit).join('\n');
         showToast(`Limite máximo de ${linesLimit} linhas atingido!`, "warning");
       }
-      
+
       const currentLines = textarea.value.split('\n').filter(l => l.trim() !== '').length;
       document.getElementById('essayLinesCounter').textContent = `${currentLines} / ${linesLimit} linhas efetivas`;
     }
 
     function switchWorkspaceTab(tab) {
       activeWorkspaceTab = tab;
-      
+
       // Tab style
       document.querySelectorAll('.workspace-tab-btn').forEach(b => {
         b.className = "workspace-tab-btn font-display font-semibold text-sm px-4 py-2.5 rounded-t-xl transition duration-150 border-t border-x border-transparent text-gray-400 hover:text-white bg-transparent";
@@ -2253,7 +2406,7 @@
       list.forEach(m => {
         const card = document.createElement('div');
         card.className = "bg-gray-900 border border-gray-800 p-3 rounded-lg flex items-center justify-between text-xs";
-        
+
         let typeEmoji = '📄';
         if (m.material_type === 'web_link') typeEmoji = '🔗';
         else if (m.material_type === 'youtube_link') typeEmoji = '📺';
@@ -2306,19 +2459,19 @@
       statusMsg.textContent = "Lendo arquivo PDF...";
 
       const reader = new FileReader();
-      reader.onload = async function() {
+      reader.onload = async function () {
         const typedArray = new Uint8Array(this.result);
         try {
           statusMsg.textContent = "Extraindo texto via PDF.js...";
           const text = await extractTextFromPDF(typedArray);
-          
+
           if (!text.trim()) {
             throw new Error("Não foi possível extrair nenhum texto legível deste PDF.");
           }
 
           statusMsg.textContent = "Salvando material...";
           await db.addStudyMaterial(activeTopic.id, 'pdf_text', text, file.name);
-          
+
           showToast("PDF processado e anexado com sucesso!", "success");
           progressContainer.classList.add('hidden');
           fileInput.value = '';
@@ -2337,11 +2490,11 @@
     async function extractTextFromPDF(uint8Array) {
       // PDF.js settings
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-      
+
       const loadingTask = pdfjsLib.getDocument({ data: uint8Array });
       const pdf = await loadingTask.promise;
       let fullText = '';
-      
+
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
@@ -2354,7 +2507,7 @@
     async function addTextMaterial() {
       const nameField = document.getElementById('textMaterialName');
       const contentField = document.getElementById('textMaterialContent');
-      
+
       const name = nameField.value.trim();
       const content = contentField.value.trim();
 
@@ -2404,7 +2557,7 @@
     // ==========================================
     // 9. PROMPT ENGINEERING & CONEXÃO COM GEMINI API
     // ==========================================
-    
+
     // Auxiliar: Limpa e realiza parse do JSON da IA removendo markdown blocks
     function cleanAndParseJSON(rawText) {
       let cleaned = rawText.trim();
@@ -2441,16 +2594,16 @@
     // Agrupa todos os textos dos materiais de apoio para alimentar o contexto cumulativo
     async function getCumulativeContext() {
       let texts = '';
-      
+
       // Teoria padrão
       if (activeTopic.theory_content) {
         texts += `Teoria Principal do Assunto:\n${activeTopic.theory_content}\n\n`;
       }
-      
+
       // Materiais acumulados
       const list = await db.getStudyMaterials(activeTopic.id);
       const textMaterials = list.filter(m => m.material_type === 'pdf_text');
-      
+
       textMaterials.forEach((m, idx) => {
         texts += `Material de Contexto ${idx + 1} (${m.display_name}):\n${m.content_data}\n\n`;
       });
@@ -2464,10 +2617,10 @@
     async function generateQuestions(forceWeakRecovery = false, recoveryTopics = []) {
       const container = document.getElementById('questionsContainer');
       const loading = document.getElementById('questionsLoading');
-      
+
       container.innerHTML = '';
       loading.classList.remove('hidden');
-      
+
       let targetTopic = activeTopic;
       let targetSubject = activeSubject;
       let targetStats = activeTopicStats;
@@ -2486,7 +2639,7 @@
       const nome_do_topico = targetTopic.title;
       const recorrencia_percentual = targetStats ? targetStats.recurrence_percentage : 0.00;
       const estilo_questoes = activeContest.exam_style === 'multipla_escolha' ? 'Múltipla Escolha' : 'Certo / Errado';
-      
+
       let textos_dos_materiais_de_apoio = "";
       if (forceWeakRecovery) {
         // Load target topic theory
@@ -2527,7 +2680,7 @@ Formato da saída esperado (JSON estrito):
       try {
         let jsonResponse;
         const apiKey = localStorage.getItem('edutech_gemini_key');
-        
+
         if (apiKey) {
           jsonResponse = await queryGeminiAPI(systemPrompt, userPrompt);
         } else {
@@ -2664,7 +2817,7 @@ Formato da saída esperado (JSON estrito):
       questions.forEach((q, qIdx) => {
         const card = document.createElement('div');
         card.className = "bg-gray-900/50 p-5 rounded-xl border border-gray-700 flex flex-col gap-4 text-left shadow-sm";
-        
+
         let alternativesHTML = '';
         for (let key in q.alternativas) {
           alternativesHTML += `
@@ -2697,13 +2850,13 @@ Formato da saída esperado (JSON estrito):
     async function checkQuestionAnswer(btn, selected, correct, topicId, qIdx) {
       const parent = document.getElementById(`optsGroup-${qIdx}`);
       const buttons = parent.querySelectorAll('button');
-      
+
       // Lock options
       buttons.forEach(b => b.disabled = true);
 
       // Colors
       const isCorrect = selected.toLowerCase() === correct.toLowerCase();
-      
+
       if (isCorrect) {
         btn.classList.add('bg-emerald-950/80', 'border-brandgreen', 'text-brandgreen');
         showToast("Resposta correta! +10 pts", "success");
@@ -2712,7 +2865,7 @@ Formato da saída esperado (JSON estrito):
       } else {
         btn.classList.add('bg-red-950/80', 'border-red-500', 'text-red-400');
         showToast("Resposta incorreta.", "error");
-        
+
         // Highlight correct button
         buttons.forEach(b => {
           const letter = b.querySelector('span').textContent.toLowerCase();
@@ -2734,7 +2887,7 @@ Formato da saída esperado (JSON estrito):
         <p class="mt-1">${isCorrect ? 'Excelente análise.' : 'Estude a justificativa da banca examinadora abaixo.'}</p>
         <div class="border-t border-gray-800 pt-2 mt-2 text-gray-300">${isCorrect ? 'Parabéns!' : 'Revisão: '} ...</div>
       `;
-      
+
       // Obter justificativa real das questões
       if (window.activeQuestionsCache && window.activeQuestionsCache[qIdx]) {
         justif.innerHTML = `
@@ -2742,13 +2895,13 @@ Formato da saída esperado (JSON estrito):
           <div class="text-gray-300 font-sans text-xs">${window.activeQuestionsCache[qIdx].justificativa}</div>
         `;
       }
-      
+
       justif.classList.remove('hidden');
     }
 
     // Intercepta a renderização para salvar o cache das justificativas
     const originalRenderQuestions = renderQuestions;
-    renderQuestions = function(questions, topicId) {
+    renderQuestions = function (questions, topicId) {
       window.activeQuestionsCache = questions;
       originalRenderQuestions(questions, topicId);
     };
@@ -2761,7 +2914,7 @@ Formato da saída esperado (JSON estrito):
       const themeContainer = document.getElementById('activeThemeContainer');
       const espelhoBtn = document.getElementById('verEspelhoRedacaoBtn');
       const espelhoContainer = document.getElementById('essayEspelhoContainer');
-      
+
       themeContainer.classList.add('hidden');
       espelhoBtn.classList.add('hidden');
       espelhoContainer.classList.add('hidden');
@@ -2796,7 +2949,7 @@ Formato de Saída (JSON estrito):
       try {
         let jsonResponse;
         const apiKey = localStorage.getItem('edutech_gemini_key');
-        
+
         if (apiKey) {
           jsonResponse = await queryGeminiAPI(systemPrompt, userPrompt);
         } else {
@@ -2806,7 +2959,7 @@ Formato de Saída (JSON estrito):
         }
 
         activeEssayTheme = jsonResponse;
-        
+
         // Render
         document.getElementById('essayActiveThemeTitle').textContent = jsonResponse.tema;
         const list = document.getElementById('essayActiveThemeTopics');
@@ -2875,12 +3028,12 @@ Formato de Saída (JSON estrito):
 
       const loading = document.getElementById('essayCorrectionLoading');
       const resultsContainer = document.getElementById('essayCorrectionResults');
-      
+
       resultsContainer.classList.add('hidden');
       loading.classList.remove('hidden');
 
       const config = await db.getEssayConfig(activeContest.id);
-      
+
       const board = activeContest.board;
       const nome_do_concurso = activeContest.name;
       const content_score_max = config.content_score_max;
@@ -2953,7 +3106,7 @@ Formato de Saída esperado (JSON estrito):
       try {
         let jsonResponse;
         const apiKey = localStorage.getItem('edutech_gemini_key');
-        
+
         if (apiKey) {
           jsonResponse = await queryGeminiAPI(systemPrompt, userPrompt);
         } else {
@@ -2968,7 +3121,7 @@ Formato de Saída esperado (JSON estrito):
         let ncValue = config.macro_score_max;
         const contMatch = jsonResponse.pontuacaoPorCriterio.conteudo.match(/(\d+(\.\d+)?)/);
         const estMatch = jsonResponse.pontuacaoPorCriterio.estruturaCoesao.match(/(\d+(\.\d+)?)/);
-        
+
         if (contMatch && estMatch) {
           ncValue = parseFloat(contMatch[1]) + parseFloat(estMatch[1]);
         } else {
@@ -2978,7 +3131,7 @@ Formato de Saída esperado (JSON estrito):
 
         const linesEfetivas = draft.split('\n').filter(l => l.trim() !== '').length;
         const finalCalculated = calculateClientSideEssayScore(ncValue, jsonResponse.errosMicroestrutura, config, linesEfetivas);
-        
+
         // Atualiza nota calculada com exatidão matemática
         jsonResponse.pontuacaoFinal = finalCalculated;
         jsonResponse.linhasEfetivamenteEscritas = linesEfetivas;
@@ -2993,7 +3146,7 @@ Formato de Saída esperado (JSON estrito):
 
         loading.classList.add('hidden');
         resultsContainer.classList.remove('hidden');
-        
+
         // Renderizar resultados da Redação
         renderEssayCorrectionUI(jsonResponse, config, ncValue);
         showToast(`Redação Corrigida! Nota: ${jsonResponse.pontuacaoFinal}. +${scoreGain} pts!`, "success");
@@ -3010,7 +3163,7 @@ Formato de Saída esperado (JSON estrito):
       const K = parseFloat(config.formula_multiplier || 2.00);
       const TLE_val = Math.max(1, parseInt(TLE || 1));
       const formulaType = config.formula_type || 'cebraspe';
-      
+
       let finalScore = parseFloat(nc);
       let totalDeduction = 0;
 
@@ -3032,7 +3185,7 @@ Formato de Saída esperado (JSON estrito):
     function getMockEssayCorrection(draft, config) {
       const lines = draft.split('\n');
       const linesEfetivas = lines.filter(l => l.trim() !== '').length;
-      
+
       // Simula detecção de erro se encontrar certas palavras
       const errors = [];
       lines.forEach((lineText, idx) => {
@@ -3061,7 +3214,7 @@ Formato de Saída esperado (JSON estrito):
 
       const maxContent = config.content_score_max;
       const maxStructure = config.structure_score_max;
-      
+
       // Notas macro aproximadas
       const cScore = maxContent - (errors.length * 2);
       const sScore = maxStructure - (errors.length * 1.5);
@@ -3083,7 +3236,7 @@ Formato de Saída esperado (JSON estrito):
     function renderEssayCorrectionUI(res, config, ncValue) {
       document.getElementById('correctScoreVal').textContent = res.pontuacaoFinal.toFixed(2);
       document.getElementById('correctMaxScoreVal').textContent = ` / ${config.macro_score_max}`;
-      
+
       // Detalhes da fórmula
       document.getElementById('resFormulaType').textContent = config.formula_type.toUpperCase();
       document.getElementById('resTLE').textContent = res.linhasEfetivamenteEscritas;
@@ -3116,7 +3269,7 @@ Formato de Saída esperado (JSON estrito):
             <td class="p-2 text-brandgreen font-bold font-mono">${err.correcao}</td>
             <td class="p-2 text-red-500 font-bold">${parseFloat(err.penalidadeAplicada).toFixed(2)}</td>
           `;
-          
+
           // Click to highlight line in editor
           row.onclick = () => {
             const editor = document.getElementById('essayEditor');
@@ -3124,7 +3277,7 @@ Formato de Saída esperado (JSON estrito):
             const lineNum = err.linha - 1;
             if (lineNum >= 0 && lineNum < lines.length) {
               editor.focus();
-              
+
               // Simplificado: seleciona a linha inteira no editor
               let startPos = 0;
               for (let i = 0; i < lineNum; i++) {
@@ -3132,7 +3285,7 @@ Formato de Saída esperado (JSON estrito):
               }
               const endPos = startPos + lines[lineNum].length;
               editor.setSelectionRange(startPos, endPos);
-              
+
               showToast(`Linha ${err.linha} destacada no editor!`, "warning");
             }
           };
@@ -3153,7 +3306,7 @@ Formato de Saída esperado (JSON estrito):
       const subjects = await db.getSubjects(activeContest.id);
       const subjIds = subjects.map(s => s.id);
       const topics = [];
-      
+
       for (let s of subjects) {
         const tops = await db.getTopics(s.id);
         topics.push(...tops);
@@ -3170,7 +3323,7 @@ Formato de Saída esperado (JSON estrito):
       for (let t of topics) {
         const stats = await db.getTopicRecurrence(t.id);
         const prog = progressList.find(p => p.topic_id === t.id);
-        
+
         const correct = prog?.correct_count || 0;
         const incorrect = prog?.incorrect_count || 0;
         const total = correct + incorrect;
@@ -3221,4 +3374,5 @@ Formato de Saída esperado (JSON estrito):
     // Configurações unificadas do projeto "Estudos"
   </script>
 </body>
+
 </html>
