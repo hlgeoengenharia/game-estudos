@@ -15,9 +15,11 @@ create table if not exists profiles (
 create table if not exists contests (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references profiles(id) on delete cascade,
-  name text not null, -- ex: "Analista Judiciário - TJPE"
+  name text not null, -- ex: "Analista Judiciário"
   board text not null, -- ex: "IBFC", "FGV", "Cebraspe", "FCC"
   exam_style text not null, -- "multipla_escolha" ou "certo_errado"
+  institution text, -- ex: "TJPE", "RFB", "INSS"
+  notice_text text, -- Conteúdo completo do edital extraído
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
