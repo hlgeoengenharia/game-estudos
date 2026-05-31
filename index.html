@@ -1406,6 +1406,30 @@
         }
       }
 
+      async getTopicsForSubjects(subjectIds) {
+        if (!subjectIds || subjectIds.length === 0) return [];
+        if (this.useSupabase) {
+          const { data, error } = await this.supabaseClient.from('topics').select('*').in('subject_id', subjectIds).order('created_at', { ascending: true });
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          return db.topics.filter(t => subjectIds.includes(t.subject_id));
+        }
+      }
+
+      async getRecurrenceForTopics(topicIds) {
+        if (!topicIds || topicIds.length === 0) return [];
+        if (this.useSupabase) {
+          const { data, error } = await this.supabaseClient.from('topic_recurrence_stats').select('*').in('topic_id', topicIds);
+          if (error) throw error;
+          return data;
+        } else {
+          const db = this.getMockDB();
+          return db.topic_recurrence_stats.filter(s => topicIds.includes(s.topic_id));
+        }
+      }
+
       async createSubject(contestId, name) {
         if (this.useSupabase) {
           const { data, error } = await this.supabaseClient.from('subjects').insert({ contest_id: contestId, name }).select().single();
@@ -2567,18 +2591,37 @@
         `;
       }
 
+      const subjectIds = subjects.map(s => s.id);
+      const allTopics = await db.getTopicsForSubjects(subjectIds);
+      const topicIds = allTopics.map(t => t.id);
+      const allRecurrences = await db.getRecurrenceForTopics(topicIds);
+
+      // Map in memory to prevent N+1 sequential requests
+      const topicsBySubject = {};
+      subjectIds.forEach(id => topicsBySubject[id] = []);
+      allTopics.forEach(t => {
+        if (topicsBySubject[t.subject_id]) {
+          topicsBySubject[t.subject_id].push(t);
+        }
+      });
+
+      const recurrenceByTopic = {};
+      allRecurrences.forEach(r => {
+        recurrenceByTopic[r.topic_id] = r;
+      });
+
       let totalCorrectSum = 0;
       let totalIncorrectSum = 0;
       const progressList = await db.getUserProgress();
 
       for (let s of subjects) {
-        const topics = await db.getTopics(s.id);
+        const topics = topicsBySubject[s.id] || [];
         const item = document.createElement('details');
         item.className = "group bg-gray-900/40 p-4 rounded-xl border border-gray-800 text-left transition duration-200";
 
         let topicsHTML = '';
         for (let t of topics) {
-          const rec = await db.getTopicRecurrence(t.id);
+          const rec = recurrenceByTopic[t.id];
           const prog = progressList.find(p => p.topic_id === t.id);
           const correct = prog?.correct_count || 0;
           const incorrect = prog?.incorrect_count || 0;
@@ -2804,8 +2847,19 @@
         return;
       }
 
+      const subjectIds = subjects.map(s => s.id);
+      const allTopics = await db.getTopicsForSubjects(subjectIds);
+
+      const topicsBySubject = {};
+      subjectIds.forEach(id => topicsBySubject[id] = []);
+      allTopics.forEach(t => {
+        if (topicsBySubject[t.subject_id]) {
+          topicsBySubject[t.subject_id].push(t);
+        }
+      });
+
       for (let s of subjects) {
-        const topics = await db.getTopics(s.id);
+        const topics = topicsBySubject[s.id] || [];
         const subjDiv = document.createElement('div');
         subjDiv.className = "flex flex-col gap-1";
 
